@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-export function SidebarItem({ icon, label, to, collapsed = false }) {
+export function SidebarItem({ icon, label, to, collapsed = false ,badge = false}) {
   return (
     <NavLink
       to={to}
@@ -14,16 +14,13 @@ export function SidebarItem({ icon, label, to, collapsed = false }) {
       title={collapsed ? label : undefined}
     >
       {({ isActive }) => (
-        <div
-          className={`flex items-center gap-3 relative ${collapsed ? "" : "flex-1 grow"}`}
-        >
+        <div className={`flex items-center gap-3 relative ${collapsed ? "" : "flex-1 grow"}`}>
           <div
             className={`inline-flex items-center justify-center flex-shrink-0 ${
               isActive
                 ? "[&>svg]:text-purple-600 dark:[&>svg]:text-purple-300"
                 : "[&>svg]:text-slate-500 dark:[&>svg]:text-white/70 hover:[&>svg]:text-slate-700 dark:hover:[&>svg]:text-white"
-            }`}
-          >
+            }`}>
             {icon}
           </div>
 
@@ -33,10 +30,12 @@ export function SidebarItem({ icon, label, to, collapsed = false }) {
                 isActive
                   ? "text-purple-600 dark:text-purple-300 font-semibold"
                   : "text-slate-600 dark:text-white/70 hover:text-slate-800 dark:hover:text-white"
-              }`}
-            >
+              }`}>
               {label}
             </div>
+          )}
+          {badge && (
+            <div className="h-2 w-2 absolute top-[16px] left-[-1px] rounded-full bg-purple-600 dark:bg-purple-400 border-white dark:border-slate-800 border box-border z-[2]" />
           )}
         </div>
       )}

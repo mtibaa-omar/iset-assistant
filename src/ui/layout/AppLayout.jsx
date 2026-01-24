@@ -26,7 +26,7 @@ export default function AppLayout() {
             hueShift={170}
             noiseIntensity={0}
             scanlineIntensity={0}
-            speed={0.52}
+            speed={0.9}
             scanlineFrequency={0}
             warpAmount={0}
           />

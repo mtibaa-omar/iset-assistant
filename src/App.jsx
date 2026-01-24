@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Home from "./pages/Home";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import AppLayout from "./ui/layout/AppLayout";
+import News from "./pages/News";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,7 +23,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<AppLayout />}>
               <Route index element={<Home />} />
-              <Route path="actualites" element={<Home />} />
+              <Route path="actualites" element={<News />} />
               <Route path="matieres" element={<Home />} />
               <Route path="moyenne" element={<Home />} />
               <Route path="outils" element={<Home />} />
