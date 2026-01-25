@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "./Sidebar";
+import SidebarMobile from "./SidebarMobile";
 import { Outlet } from "react-router-dom";
 import DarkVeil from "../components/DarkVeil";
 import HeaderMenu from "../components/HeaderMenu";
 import { useDarkMode } from "../../context/DarkModeContext";
 import LightVeil from "../components/LightVeil";
+import { Menu } from "lucide-react";
 
 export default function AppLayout() {
   const { isDarkMode } = useDarkMode();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -32,12 +35,26 @@ export default function AppLayout() {
           />
         )}
       </div>
-      <div className="relative z-10 flex h-screen p-4 gap-4">
+      <div className="relative z-10 flex h-screen gap-4 p-4">
+        <SidebarMobile
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+        />
         <Sidebar />
-        <main className="flex-1 bg-white/30 dark:bg-black/30 rounded-2xl backdrop-blur-md border border-white/50 dark:border-white/10 shadow-xl p-6 overflow-auto relative">
-          <div className="absolute top-6 right-6 z-20">
-            <HeaderMenu />
-          </div>
+
+        <div className="fixed z-20 top-8 right-8">
+          <HeaderMenu />
+        </div>
+
+        <main className="relative flex-1 p-6 overflow-auto border shadow-xl bg-white/30 dark:bg-black/30 rounded-2xl backdrop-blur-md border-white/50 dark:border-white/10">
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 mb-4 transition-all border rounded-xl bg-white/50 dark:bg-white/10 border-slate-200 dark:border-white/20 hover:bg-white/80 dark:hover:bg-white/20 lg:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5 text-slate-700 dark:text-white" />
+          </button>
+
           <Outlet />
         </main>
       </div>
