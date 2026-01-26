@@ -1,10 +1,18 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { DarkModeProvider } from "./context/DarkModeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/Home";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import AppLayout from "./ui/layout/AppLayout";
 import News from "./pages/News";
+import LoginPage from "./pages/LoginPage";
+import SignupLayout from "./features/auth/signup/SignupLayout";
+import SignupStep1 from "./pages/SignupStep1";
+import SignupStep2 from "./pages/SignupStep2";
+import SignupStep3 from "./pages/SignupStep3";
+import ProtectedRoute from "./ui/components/ProtectedRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,9 +27,21 @@ export default function App() {
     <DarkModeProvider>
       <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<AppLayout />}>
+            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Home />} />
               <Route path="actualites" element={<News />} />
               <Route path="matieres" element={<Home />} />
@@ -31,6 +51,13 @@ export default function App() {
               <Route path="admin" element={<Home />} />
               <Route path="account" element={<Home />} />
             </Route>
+
+            <Route path="signup" element={<SignupLayout />}>
+              <Route index element={<SignupStep1 />} />
+              <Route path="verify" element={<SignupStep2 />} />
+              <Route path="profile" element={<SignupStep3 />} />
+            </Route>
+              <Route path="login" element={<LoginPage />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

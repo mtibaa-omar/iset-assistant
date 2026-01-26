@@ -3,14 +3,12 @@ import { Bell, LogOut, Moon, Sun, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDarkMode } from "../../context/DarkModeContext";
 import NotificationPanel from "./NotificationPanel";
+import { useLogout } from "../../features/auth/useLogout";
 
 export default function HeaderMenu() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-
-  function handleLogout() {
-    console.log("Logout clicked");
-  }
+  const { isLoading, logout } = useLogout();
 
   const buttonBase = `
     p-2.5 rounded-full cursor-pointer transition-all duration-200
@@ -64,8 +62,9 @@ export default function HeaderMenu() {
       </div>
 
       <button
-        onClick={handleLogout}
+        onClick={logout}
         className={logoutButton}
+        disabled={isLoading}
         title="Déconnexion"
       >
         <LogOut className="text-slate-700 dark:text-white size-5 lg:size-4" />

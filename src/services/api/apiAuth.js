@@ -58,18 +58,29 @@ export const authAPI = {
     return data?.user;
   },
 
-  updateCurrentUser: async ({ fullName, password, avatar }) => {
-    //1. update password or fullNmae
-    let updateUser;
-    if (fullName) updateUser = { data: { fullName } };
-    if (password) updateUser = { password };
+  updateCurrentUser: async ({ fullName, password, avatar, level, speciality }) => {
+    let updateData = { data: {} };
+    
+    if (fullName) updateData.data.full_name = fullName;
+    if (level) updateData.data.level = level;
+    if (speciality) updateData.data.speciality = speciality;
+    if (password) updateData.password = password;
 
-    const { data, error } = await supabase.auth.updateUser(updateUser);
-    if (error) throw new Error(error.message);
-    if (!avatar) return data;
+    if (Object.keys(updateData.data).length > 0 || updateData.password) {
+      const { data, error } = await supabase.auth.updateUser(updateData);
+      if (error) throw new Error(error.message);
+      if (!avatar) return data;
+    }
+
+    if (!avatar) {
+      const { data } = await supabase.auth.getUser();
+      return data;
+    }
+
+    const { data: currentUser } = await supabase.auth.getUser();
 
     //2. Upload avatar image
-    const fileName = `avatar-${data.user.id}-${Math.random()}`;
+    const fileName = `avatar-${currentUser.user.id}-${Math.random()}`;
 
     const { error: errorStorage } = await supabase.storage
       .from("avatars")
@@ -109,6 +120,25 @@ export const authAPI = {
       email,
     });
     if (error) throw new Error(error.message);
-  }
+  },
+  getData: async () => {
+    const [depts, specs, lvls, specLvls] = await Promise.all([
+      supabase.from('departments').select('*'),
+      supabase.from('specialties').select('*'),
+      supabase.from('levels').select('*'),
+      supabase.from('specialty_levels').select('*'),
+    ]);
 
+    if (depts.error) throw new Error(depts.error.message);
+    if (specs.error) throw new Error(specs.error.message);
+    if (lvls.error) throw new Error(lvls.error.message);
+    if (specLvls.error) throw new Error(specLvls.error.message);
+
+    return {
+      departments: depts.data || [],
+      specialties: specs.data || [],
+      levels: lvls.data || [],
+      specialtyLevels: specLvls.data || [],
+    };
+  }
 };
