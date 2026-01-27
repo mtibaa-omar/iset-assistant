@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import AppLayout from "./ui/layout/AppLayout";
 import News from "./pages/News";
+import Calcul from "./pages/Calcul";
 import LoginPage from "./pages/LoginPage";
 import SignupLayout from "./features/auth/signup/SignupLayout";
 import SignupStep1 from "./pages/SignupStep1";
@@ -37,7 +38,6 @@ export default function App() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="colored"
         />
         <BrowserRouter>
           <Routes>
@@ -45,7 +45,7 @@ export default function App() {
               <Route index element={<Home />} />
               <Route path="actualites" element={<News />} />
               <Route path="matieres" element={<Home />} />
-              <Route path="moyenne" element={<Home />} />
+              <Route path="moyenne" element={<Calcul />} />
               <Route path="outils" element={<Home />} />
               <Route path="tutoriels" element={<Home />} />
               <Route path="admin" element={<Home />} />

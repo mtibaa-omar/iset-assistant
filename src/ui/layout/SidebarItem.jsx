@@ -13,8 +13,8 @@ export function SidebarItem({
       className={({ isActive }) =>
         `flex h-11 items-center gap-3 ${collapsed ? "px-3 justify-center" : "px-4"} py-3 relative self-stretch w-full rounded-[99px] overflow-hidden cursor-pointer outline-none focus:outline-none focus-visible:outline-none ${
           isActive
-            ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 border border-purple-300/50 dark:border-white/20 shadow-lg shadow-purple-500/10 dark:shadow-purple-500/20"
-            : "hover:bg-slate-100/50 dark:hover:bg-white/10 border border-transparent "
+            ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 border border-purple-300/50 dark:border-slate-600 shadow-lg shadow-purple-500/10 dark:shadow-purple-500/20"
+            : "hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent "
         }`
       }
       title={collapsed ? label : undefined}
