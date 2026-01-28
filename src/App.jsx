@@ -9,11 +9,13 @@ import AppLayout from "./ui/layout/AppLayout";
 import News from "./pages/News";
 import Calcul from "./pages/Calcul";
 import LoginPage from "./pages/LoginPage";
-import SignupLayout from "./features/auth/signup/SignupLayout";
+import SignupLayout, { SignupProvider } from "./features/auth/signup/SignupLayout";
 import SignupStep1 from "./pages/SignupStep1";
 import SignupStep2 from "./pages/SignupStep2";
 import SignupStep3 from "./pages/SignupStep3";
+import AuthCallback from "./pages/AuthCallback";
 import ProtectedRoute from "./ui/components/ProtectedRoute";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,7 +51,7 @@ export default function App() {
               <Route path="outils" element={<Home />} />
               <Route path="tutoriels" element={<Home />} />
               <Route path="admin" element={<Home />} />
-              <Route path="account" element={<Home />} />
+              <Route path="account" element={<Profile />} />
             </Route>
 
             <Route path="signup" element={<SignupLayout />}>
@@ -57,6 +59,7 @@ export default function App() {
               <Route path="verify" element={<SignupStep2 />} />
               <Route path="profile" element={<SignupStep3 />} />
             </Route>
+            <Route path="auth/callback" element={<SignupProvider><AuthCallback /></SignupProvider>} />
               <Route path="login" element={<LoginPage />} />
           </Routes>
         </BrowserRouter>

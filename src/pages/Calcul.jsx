@@ -30,8 +30,8 @@ export default function Calcul() {
   const [hasChanges, setHasChanges] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState(getDefaultSemester);
 
-  const specialtyId = user?.user_metadata?.speciality;
-  const levelId = user?.user_metadata?.level;
+  const specialtyId = user?.user_metadata?.specialty_id;
+  const levelId = user?.user_metadata?.level_id;
 
   const { subjects } = useSubjectsByProgram(specialtyId, levelId);
   const { academicYear } = useCurrentAcademicYear();

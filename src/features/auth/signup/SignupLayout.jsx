@@ -73,4 +73,4 @@ export default function SignupLayout() {
   );
 }
 
-export { STEP_CONFIG };
+export { STEP_CONFIG, SignupProvider };

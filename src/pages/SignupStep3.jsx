@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { UserPlus, Building2, GraduationCap, BookOpen, Award } from "lucide-react";
+import { toast } from "react-toastify";
 import Button from "../ui/components/Button";
 import Select from "../ui/components/Select";
 import { useSignupContext } from "../features/auth/signup/SignupContext";
@@ -95,8 +96,9 @@ export default function SignupStep3() {
       },
       {
         onSuccess: () => {
-          resetSignup();
-          navigate("/", { replace: true });
+          toast.success("Account setup complete!");
+          navigate("/");
+          setTimeout(() => resetSignup(), 100);
         },
       }
     );

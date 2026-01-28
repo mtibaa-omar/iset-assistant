@@ -32,7 +32,7 @@ export const authAPI = {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: "offline",
           prompt: "consent",
@@ -41,6 +41,17 @@ export const authAPI = {
     });
     if (error) throw new Error(error.message);
     return data;
+  },
+
+  getProfile: async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('level_id, specialty_id')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (error) throw new Error(error.message);
+    return data; 
   },
 
   signOut: async () => {
@@ -59,49 +70,30 @@ export const authAPI = {
   },
 
   updateCurrentUser: async ({ fullName, password, avatar, level, speciality }) => {
-    let updateData = { data: {} };
-    
-    if (fullName) updateData.data.full_name = fullName;
-    if (level) updateData.data.level = level;
-    if (speciality) updateData.data.speciality = speciality;
-    if (password) updateData.password = password;
-
-    if (Object.keys(updateData.data).length > 0 || updateData.password) {
-      const { data, error } = await supabase.auth.updateUser(updateData);
-      if (error) throw new Error(error.message);
-      if (!avatar) return data;
-    }
-
-    if (!avatar) {
-      const { data } = await supabase.auth.getUser();
-      return data;
-    }
-
     const { data: currentUser } = await supabase.auth.getUser();
 
-    //2. Upload avatar image
-    const fileName = `avatar-${currentUser.user.id}-${Math.random()}`;
+    let authUpdateData = { data: {} };
+    
+    if (fullName) authUpdateData.data.full_name = fullName;
+    if (level) authUpdateData.data.level_id = level;
+    if (speciality) authUpdateData.data.specialty_id = speciality;
+    if (password) authUpdateData.password = password;
 
-    const { error: errorStorage } = await supabase.storage
-      .from("avatars")
-      .upload(fileName, avatar);
+     if (avatar) {
+      const fileName = `avatar-${currentUser.user.id}-${Math.random()}`;
+      const { error: errorStorage } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, avatar);
 
-    if (errorStorage) {
-      console.error(errorStorage);
-      throw new Error(errorStorage.message);
+      if (errorStorage) throw new Error(errorStorage.message);
+      
+      authUpdateData.data.avatar_url = `${supabaseUrl}/storage/v1/object/public/avatars/${fileName}`;
     }
-
-    //3. Update file name
-    const { data: updatedUser, error: error2 } = await supabase.auth.updateUser({
-      data: {
-        avatar: `${supabaseUrl}/storage/v1/object/public/avatars/${fileName}`,
-      },
-    });
-    if (error2) {
-      console.error(error2);
-      throw new Error(error2.message);
+  if (Object.keys(authUpdateData.data).length > 0 || authUpdateData.password) {
+      const { data, error } = await supabase.auth.updateUser(authUpdateData);
+      if (error) throw new Error(error.message);
+      return data;
     }
-    return updatedUser;
   },
 
   verifyOtp: async (email, token) => {
@@ -125,7 +117,7 @@ export const authAPI = {
     const [depts, specs, lvls, specLvls] = await Promise.all([
       supabase.from('departments').select('*'),
       supabase.from('specialties').select('*'),
-      supabase.from('levels').select('*'),
+      supabase.from('levels').select('*').order('name', { ascending: true }),
       supabase.from('specialty_levels').select('*'),
     ]);
 
