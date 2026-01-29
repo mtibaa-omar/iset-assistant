@@ -8,8 +8,11 @@ import {
   ToolCase,
 } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
+import { useUser } from "../../features/auth/useUser";
 
 export default function MenuItems({ collapsed, onNavigate }) {
+  const { isAdmin } = useUser();
+  
   return (
     <>
       <SidebarItem
@@ -55,17 +58,22 @@ export default function MenuItems({ collapsed, onNavigate }) {
         collapsed={collapsed}
       />
 
-      <div className="w-full px-2 my-3">
-        <hr className="border-t border-slate-200 dark:border-white/20" />
-      </div>
+      {isAdmin && (
+        <>
+          <div className="w-full px-2 my-3">
+            <hr className="border-t border-slate-200 dark:border-white/20" />
+          </div>
 
-      <SidebarItem
-        icon={<ShieldUser className="w-5 h-5" />}
-        label="Admin"
-        to="/admin"
-        onNavigate={onNavigate}
-        collapsed={collapsed}
-      />
+          <SidebarItem
+            icon={<ShieldUser className="w-5 h-5" />}
+            label="Admin"
+            to="/admin"
+            onNavigate={onNavigate}
+            collapsed={collapsed}
+          />
+        </>
+      )}
     </>
   );
 }
+

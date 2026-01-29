@@ -7,5 +7,13 @@ export function useUser() {
     queryKey: authKeys.user,
     queryFn: authAPI.getUser,
   });
-  return { isLoading, user, isAuthenticated: user?.role === "authenticated" };
+  
+  return { 
+    isLoading, 
+    user, 
+    isAuthenticated: user?.role === "authenticated",
+    role: user?.profile_role || 'student',
+    isAdmin: user?.profile_role === 'admin',
+    isStaff: ['admin', 'moderator'].includes(user?.profile_role),
+  };
 }

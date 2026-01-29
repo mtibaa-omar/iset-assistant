@@ -10,7 +10,7 @@ export default function SidebarMobile({ isOpen, onClose }) {
       )}
 
       {isOpen && (
-        <div className="fixed z-40 flex flex-col duration-300 ease-out border shadow-xl lg:hidden left-4 top-4 bottom-4 w-72 bg-white/50 dark:bg-black/30 border-white/50 dark:border-white/10 rounded-2xl backdrop-blur-md animate-in slide-in-from-left fade-in">
+        <div className="fixed z-40 flex flex-col duration-300 ease-out border shadow-xl lg:hidden left-4 top-4 bottom-4 w-72 bg-white dark:bg-slate-900 border-white/50 dark:border-white/10 rounded-2xl backdrop-blur-md animate-in slide-in-from-left fade-in">
           <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-white/10">
             <UserAvatar collapsed={false} />
             <button onClick={onClose} className="p-2 transition-all rounded-full bg-slate-100/50 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20" aria-label="Close menu">

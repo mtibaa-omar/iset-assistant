@@ -15,18 +15,18 @@ export default function AppLayout() {
         <div className="absolute rounded-full w-96 h-96 -bottom-48 -right-48 bg-gradient-to-br from-pink-400/30 to-violet-400/30 dark:from-pink-500/20 dark:to-violet-500/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute w-64 h-64 rounded-full top-1/4 right-1/4 bg-gradient-to-br from-violet-300/20 to-purple-300/20 dark:from-violet-400/10 dark:to-purple-400/10 blur-2xl" />
       </div>
-      <div className="relative z-10 flex h-screen gap-4 p-4">
+      <div className="relative z-10 flex h-screen gap-2 p-2 md:gap-4 md:p-4">
         <SidebarMobile
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
         />
         <Sidebar />
 
-        <div className="fixed z-20 top-8 right-8">
+        <div className="fixed z-20 top-6 right-6 md:top-8 md:right-8">
           <HeaderMenu />
         </div>
 
-        <main className="relative flex-1 p-6 overflow-auto bg-white border shadow-xl dark:bg-slate-900 rounded-2xl border-slate-200 dark:border-slate-700">
+        <main className="relative flex-1 p-4 md:p-6 overflow-auto bg-white border shadow-xl dark:bg-slate-900 rounded-2xl border-slate-200 dark:border-slate-700">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 mb-4 transition-all border rounded-xl bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 lg:hidden"

@@ -30,17 +30,17 @@ const Select = forwardRef(function Select(
           className={`w-full py-3 ${Icon ? 'pl-10' : 'pl-4'} pr-4 transition-all border outline-none rounded-xl bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-slate-700 dark:text-white disabled:opacity-50 ${className}`}
           {...props}
         >
-          {placeholder && <option value="">{placeholder}</option>}
+          {placeholder && <option value="" className="dark:bg-slate-800 dark:text-white">{placeholder}</option>}
           {options.map((option) => {
             if (typeof option === "string") {
               return (
-                <option key={option} value={option}>
+                <option key={option} value={option} className="dark:bg-slate-800 dark:text-white">
                   {option}
                 </option>
               );
             }
             return (
-              <option key={option.value} value={option.value}>
+              <option key={option.value} value={option.value} className="dark:bg-slate-800 dark:text-white">
                 {option.label}
               </option>
             );

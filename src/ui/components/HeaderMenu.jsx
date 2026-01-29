@@ -30,7 +30,7 @@ export default function HeaderMenu() {
   `;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <button
         onClick={toggleDarkMode}
         className={buttonBase}

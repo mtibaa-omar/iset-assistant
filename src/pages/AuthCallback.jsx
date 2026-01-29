@@ -20,8 +20,8 @@ export default function AuthCallback() {
         hasProcessed.current = true;
         return;
       }
-      const levelId = user?.user_metadata?.level_id;
-      const specialtyId = user?.user_metadata?.specialty_id;
+      const levelId = user?.level_id;
+      const specialtyId = user?.specialty_id;
       const isProfileComplete = levelId && specialtyId;
 
       if (isProfileComplete) {

@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import AppLayout from "./ui/layout/AppLayout";
 import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
 import Calcul from "./pages/Calcul";
 import LoginPage from "./pages/LoginPage";
 import SignupLayout, { SignupProvider } from "./features/auth/signup/SignupLayout";
@@ -15,7 +16,11 @@ import SignupStep2 from "./pages/SignupStep2";
 import SignupStep3 from "./pages/SignupStep3";
 import AuthCallback from "./pages/AuthCallback";
 import ProtectedRoute from "./ui/components/ProtectedRoute";
+import AdminRoute from "./ui/components/AdminRoute";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
+
+import EspaceMatiere from "./pages/EspaceMatiere";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,11 +51,12 @@ export default function App() {
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Home />} />
               <Route path="actualites" element={<News />} />
-              <Route path="matieres" element={<Home />} />
+              <Route path="actualites/:id" element={<NewsDetail />} />
+              <Route path="matieres" element={<EspaceMatiere />} />
               <Route path="moyenne" element={<Calcul />} />
               <Route path="outils" element={<Home />} />
               <Route path="tutoriels" element={<Home />} />
-              <Route path="admin" element={<Home />} />
+              <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
               <Route path="account" element={<Profile />} />
             </Route>
 

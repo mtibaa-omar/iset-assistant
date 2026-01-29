@@ -12,15 +12,15 @@ export default function UserAvatar({ collapsed }) {
 
   return (
     <div 
-      className={`flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg p-2 -m-2 ${collapsed ? "justify-center w-full" : ""}`}
+      className={`flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg p-2 -m-2 ${collapsed ? "justify-center w-full" : "w-full"}`}
       onClick={handleClick}
       role="button"
       tabIndex={0}
     >
       <img 
-        className="flex-shrink-0 object-cover w-10 h-10 rounded-lg" 
+        className="flex-shrink-0 object-cover w-12 h-12 rounded-full" 
         alt={user?.user_metadata?.full_name || "User"} 
-        src={user?.user_metadata?.avatar || "/image.png"} 
+        src={user?.user_metadata?.avatar || user?.user_metadata?.avatar_url || "/image.png"} 
       />
       {!collapsed && (
         <div className="overflow-hidden whitespace-nowrap">
@@ -28,7 +28,7 @@ export default function UserAvatar({ collapsed }) {
             {user?.user_metadata?.full_name || "ISET Assistant"}
           </h3>
           <h4 className="text-xs font-medium text-slate-500 dark:text-white/60">
-            Student
+            {user.profile_role.charAt(0).toUpperCase() + user.profile_role.slice(1)}
           </h4>
         </div>
       )}

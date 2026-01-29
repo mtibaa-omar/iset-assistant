@@ -64,9 +64,23 @@ export const authAPI = {
     if (!session.session) return null;
 
     const { data, error } = await supabase.auth.getUser();
-
     if (error) throw new Error(error.message);
-    return data?.user;
+    
+    const user = data?.user;
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, level_id, specialty_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    return { 
+      ...user, 
+      profile_role: profile?.role || 'student',
+      level_id: profile?.level_id,
+      specialty_id: profile?.specialty_id,
+    };
   },
 
   updateCurrentUser: async ({ fullName, password, avatar, level, speciality }) => {
@@ -75,8 +89,6 @@ export const authAPI = {
     let authUpdateData = { data: {} };
     
     if (fullName) authUpdateData.data.full_name = fullName;
-    if (level) authUpdateData.data.level_id = level;
-    if (speciality) authUpdateData.data.specialty_id = speciality;
     if (password) authUpdateData.password = password;
 
      if (avatar) {
@@ -89,11 +101,29 @@ export const authAPI = {
       
       authUpdateData.data.avatar_url = `${supabaseUrl}/storage/v1/object/public/avatars/${fileName}`;
     }
-  if (Object.keys(authUpdateData.data).length > 0 || authUpdateData.password) {
+
+    const profileUpdate = {};
+    if (fullName) profileUpdate.full_name = fullName;
+    if (level) profileUpdate.level_id = level;
+    if (speciality) profileUpdate.specialty_id = speciality;
+
+    if (Object.keys(profileUpdate).length > 0) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('id', currentUser.user.id);
+
+      if (profileError) throw new Error(profileError.message);
+    }
+
+    if (Object.keys(authUpdateData.data).length > 0 || authUpdateData.password) {
       const { data, error } = await supabase.auth.updateUser(authUpdateData);
       if (error) throw new Error(error.message);
       return data;
     }
+
+    const { data } = await supabase.auth.getUser();
+    return data;
   },
 
   verifyOtp: async (email, token) => {

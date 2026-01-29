@@ -1,9 +1,19 @@
 import React, { useState } from "react";
 import NewsGrid from "../features/news/NewsGrid";
+import { useNews } from "../features/news/useNews";
 import { Newspaper, Grid3X3, List } from "lucide-react";
+import Spinner from "../ui/components/Spinner";
 
 export default function News() {
   const [viewMode, setViewMode] = useState("grid");
+  const { news, isLoading } = useNews();
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner />
+      </div>
+    );
+  }
   return (
     <div className="min-h-full pb-8">
       <div className="pr-16 mb-8">
@@ -22,13 +32,13 @@ export default function News() {
         </div>
       </div>
       <div className="flex justify-end mb-6">
-        <div className="flex items-center gap-1 p-1 border glass-light dark:glass-dark rounded-xl">
+        <div className="flex items-center gap-1 p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
           <button
             onClick={() => setViewMode("grid")}
             className={`p-2 rounded-lg transition-all ${
               viewMode === "grid"
-                ? "bg-primary-500 text-white shadow-md"
-                : "text-secondary-light dark:text-secondary-dark hover:bg-white/50 dark:hover:bg-white/10"
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-500/30"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50"
             }`}
           >
             <Grid3X3 className="w-4 h-4" />
@@ -37,15 +47,15 @@ export default function News() {
             onClick={() => setViewMode("list")}
             className={`p-2 rounded-lg transition-all ${
               viewMode === "list"
-                ? "bg-primary-500 text-white shadow-md"
-                : "text-secondary-light dark:text-secondary-dark hover:bg-white/50 dark:hover:bg-white/10"
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-500/30"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50"
             }`}
           >
             <List className="w-4 h-4" />
           </button>
         </div>
       </div>
-      <NewsGrid articles={[]} loading={false} viewMode={viewMode} />
+      <NewsGrid articles={news} loading={isLoading} viewMode={viewMode} />
     </div>
   );
 }
