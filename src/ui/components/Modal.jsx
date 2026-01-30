@@ -26,16 +26,16 @@ export default function Modal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className={`relative bg-white rounded-2xl shadow-2xl w-full ${maxWidth} mx-4 max-h-[90vh] flex flex-col`}
+            className={`relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full ${maxWidth} mx-4 max-h-[90vh] flex flex-col`}
           >
             {showHeader && (
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
-                <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+              <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-zinc-800 shrink-0">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-zinc-100">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-slate-500 dark:text-zinc-400" />
                 </button>
               </div>
             )}

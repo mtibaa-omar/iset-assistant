@@ -6,11 +6,6 @@ import { useUser } from "../features/auth/useUser";
 import { useSubjectsByProgram } from "../features/grades/useSubjects";
 import Select from "../ui/components/Select";
 import Button from "../ui/components/Button";
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'; 
-
-ModuleRegistry.registerModules([AllCommunityModule]);
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
 import { useDarkMode } from "../context/DarkModeContext";
 import Spinner from "../ui/components/Spinner";
 
@@ -150,11 +145,11 @@ export default function EspaceMatiere() {
         </div>
       </div>
 
-      <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[525px]">
+      <div className="flex-1 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[525px]">
         <div className={`${isDarkMode ? "ag-theme-quartz-dark" : "ag-theme-quartz"} w-full h-full`}>
           <AgGridReact
             ref={gridRef}
-            theme="legacy"
+            theme="legacy"  
             rowData={filteredData}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}

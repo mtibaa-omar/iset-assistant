@@ -89,8 +89,7 @@ export default function Calcul() {
   }, []);
 
   const totals = useMemo(() => {
-    let totalCoef = 0,
-      totalCredit = 0,
+    let totalCredit = 0,
       creditAcquis = 0,
       weightedSum = 0,
       coefWithGrades = 0;
@@ -103,7 +102,6 @@ export default function Calcul() {
         g.note_tp1,
         g.note_tp2,
       );
-      totalCoef += parseFloat(subject.coefficient || 0);
       totalCredit += parseFloat(subject.credit || 0);
       if (avg) {
         creditAcquis += parseFloat(avg) >= 10 ? subject.credit : 0;
@@ -112,7 +110,6 @@ export default function Calcul() {
       }
     });
     return {
-      totalCoef,
       totalCredit,
       creditAcquis,
       generalAverage:
@@ -158,7 +155,7 @@ export default function Calcul() {
         Grade Calculator
       </h1>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatCard
           title="General Average"
           value={totals.generalAverage || "-"}
@@ -171,9 +168,7 @@ export default function Calcul() {
         <StatCard
           title="Credits Acquired"
           value={`${totals.creditAcquis} / ${totals.totalCredit}`}
-          valueColor="text-purple-600 dark:text-purple-400"
         />
-        <StatCard title="Total Coefficient" value={totals.totalCoef} />
         <StatCard title="Subjects" value={filteredSubjects.length} />
       </div>
       <div className="flex justify-end">

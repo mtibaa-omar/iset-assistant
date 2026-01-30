@@ -18,17 +18,17 @@ export default function UniteCard({ unite, subjects, gradesMap, onGradeChange })
   );
 
   return (
-    <div className="overflow-hidden bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800">
+    <div className="overflow-hidden bg-white border rounded-lg border-slate-200 dark:border-zinc-800 dark:bg-zinc-900">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+        className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors border-b bg-slate-50 border-slate-100 dark:border-zinc-800 dark:bg-zinc-800/40 hover:bg-slate-100 dark:hover:bg-zinc-800/60"
       >
         <div>
-          <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-0.5">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-zinc-100 mb-0.5">
             {unite}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-zinc-400">
             {subjects.length} matière{subjects.length > 1 ? "s" : ""} • {uniteStats.acquiredCredit}/{uniteStats.totalCredit} crédits acquis
           </p>
         </div>
@@ -40,7 +40,7 @@ export default function UniteCard({ unite, subjects, gradesMap, onGradeChange })
       </button>
 
       {isOpen && (
-        <div className="divide-y divide-slate-200 dark:divide-slate-700">
+        <div className="divide-y divide-slate-200 dark:divide-zinc-800">
           {subjects.map((subject) => (
             <SubjectRow
               key={subject.id}

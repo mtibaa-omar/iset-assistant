@@ -1,6 +1,6 @@
 export function AuthCard({ title, subtitle, children }) {
   return (
-    <div className="relative flex items-center justify-center min-h-screen px-4 py-12 overflow-hidden bg-gradient-to-br from-violet-100 via-purple-50 to-pink-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="relative flex items-center justify-center min-h-screen px-4 py-12 overflow-hidden bg-gradient-to-br from-violet-100 via-purple-50 to-pink-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute rounded-full w-96 h-96 -top-48 -left-48 bg-gradient-to-br from-purple-400/30 to-pink-400/30 dark:from-purple-500/20 dark:to-pink-500/20 blur-3xl animate-pulse" />
         <div className="absolute rounded-full w-96 h-96 -bottom-48 -right-48 bg-gradient-to-br from-pink-400/30 to-violet-400/30 dark:from-pink-500/20 dark:to-violet-500/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -18,7 +18,7 @@ export function AuthCard({ title, subtitle, children }) {
           )}
         </div>
 
-        <div className="p-8 border shadow-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border-white/60 dark:border-slate-700/50 shadow-purple-500/10 dark:shadow-purple-500/5">
+        <div className="p-8 border shadow-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl border-white/60 dark:border-slate-700/50 shadow-purple-500/10 dark:shadow-purple-500/5">
           {children}
         </div>
 

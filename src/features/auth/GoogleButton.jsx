@@ -47,7 +47,7 @@ export default function GoogleButton({ mode = "login" }) {
           <div className="w-full border-t border-slate-200 dark:border-white/10"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 font-medium bg-white/80 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400">
+          <span className="px-4 font-medium bg-white/80 dark:bg-zinc-900/80 text-slate-500 dark:text-slate-400">
             Ou avec votre email
           </span>
         </div>

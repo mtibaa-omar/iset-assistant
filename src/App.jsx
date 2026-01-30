@@ -3,6 +3,7 @@ import { DarkModeProvider } from "./context/DarkModeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./lib/agGridSetup"; // Initialize AG Grid once
 import Home from "./pages/Home";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import AppLayout from "./ui/layout/AppLayout";
@@ -19,6 +20,9 @@ import ProtectedRoute from "./ui/components/ProtectedRoute";
 import AdminRoute from "./ui/components/AdminRoute";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import AdminSubjects from "./pages/AdminSubjects";
+import AdminUnites from "./pages/AdminUnites";
+import AdminPrograms from "./pages/AdminPrograms";
 
 import EspaceMatiere from "./pages/EspaceMatiere";
 
@@ -56,7 +60,10 @@ export default function App() {
               <Route path="moyenne" element={<Calcul />} />
               <Route path="outils" element={<Home />} />
               <Route path="tutoriels" element={<Home />} />
-              <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
+              <Route path="admin/news" element={<AdminRoute><Admin /></AdminRoute>} />
+              <Route path="admin/subjects" element={<AdminRoute><AdminSubjects /></AdminRoute>} />
+              <Route path="admin/unites" element={<AdminRoute><AdminUnites /></AdminRoute>} />
+              <Route path="admin/programs" element={<AdminRoute><AdminPrograms /></AdminRoute>} />
               <Route path="account" element={<Profile />} />
             </Route>
 

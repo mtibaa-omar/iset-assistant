@@ -6,6 +6,8 @@ import {
   Newspaper,
   Notebook,
   ToolCase,
+  Layers,
+  BookOpen,
 } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
 import { useUser } from "../../features/auth/useUser";
@@ -64,10 +66,35 @@ export default function MenuItems({ collapsed, onNavigate }) {
             <hr className="border-t border-slate-200 dark:border-white/20" />
           </div>
 
+          
           <SidebarItem
-            icon={<ShieldUser className="w-5 h-5" />}
-            label="Admin"
-            to="/admin"
+            icon={<Newspaper className="w-5 h-5" />}
+            label="Admin News"
+            to="/admin/news"
+            onNavigate={onNavigate}
+            collapsed={collapsed}
+          />
+
+          <SidebarItem
+            icon={<BookOpen className="w-5 h-5" />}
+            label="Admin Subjects"
+            to="/admin/subjects"
+            onNavigate={onNavigate}
+            collapsed={collapsed}
+          />
+
+          <SidebarItem
+            icon={<Layers className="w-5 h-5" />}
+            label="Admin Unités"
+            to="/admin/unites"
+            onNavigate={onNavigate}
+            collapsed={collapsed}
+          />
+
+          <SidebarItem
+            icon={<Layers className="w-5 h-5" />}
+            label="Admin Affectations"
+            to="/admin/programs"
             onNavigate={onNavigate}
             collapsed={collapsed}
           />
