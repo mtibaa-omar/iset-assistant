@@ -85,9 +85,23 @@ export function useAdminFilters({ levels = [], specialties = [], data = [] }) {
     const item = node.data;
     if (!item) return true;
 
-    // Department filter (for subjects)
-    if (filterDepartment !== "all" && item.departments?.id !== filterDepartment) {
-      return false;
+    // Department filter (for subjects and items with specialty->department)
+    if (filterDepartment !== "all") {
+      // Direct department (subjects)
+      if (item.departments?.id) {
+        if (item.departments.id !== filterDepartment) return false;
+      }
+      // Via specialty (program_subjects, videos, unites)
+      else if (item.specialties?.department_id) {
+        if (item.specialties.department_id !== filterDepartment) return false;
+      }
+      // Via program_subjects for unites
+      else if (item.program_subjects) {
+        const matchesDepartment = item.program_subjects.some(ps => 
+          ps.specialties?.department_id === filterDepartment
+        );
+        if (!matchesDepartment) return false;
+      }
     }
 
     // Degree filter

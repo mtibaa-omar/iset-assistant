@@ -34,4 +34,10 @@ export const adminKeys = {
     all: ['programSubjects'],
     list: () => [...adminKeys.programSubjects.all, 'list'],
   },
+
+  // Videos
+  videos: {
+    all: ['videos'],
+    list: () => [...adminKeys.videos.all, 'list'],
+  },
 };

@@ -1,7 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, Eye, Share2, ChevronRight, User, Tag } from "lucide-react";
 import { useNewsDetail } from "../features/news/useNewsDetail";
-import { useIncrementViews } from "../features/news/useIncrementViews";
 import Spinner from "../ui/components/Spinner";
 import Button from "../ui/components/Button";
 
@@ -10,7 +9,6 @@ export default function NewsDetail() {
   const navigate = useNavigate();
   const { newsItem: news, isLoading } = useNewsDetail(id);
   
-  useIncrementViews(id);
 
   const handleShare = async () => {
     try {

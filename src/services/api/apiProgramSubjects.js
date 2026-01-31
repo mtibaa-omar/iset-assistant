@@ -1,22 +1,38 @@
+
 import { supabase } from "../supabase";
 
 export const programSubjectsAPI = {
-  getAll: async () => {
+  getAll: async function getAll() {
     const { data, error } = await supabase
-      .from('program_subjects')
+      .from("program_subjects")
       .select(`
-        id,
-        semester,
-        mode,
-        coefficient,
-        credit,
-        created_at,
-        subjects(id, name),
-        specialties(id, name, degree),
-        levels(id, name, code),
-        unites(id, name, code)
+        *,
+        subjects (
+          id,
+          name
+        ),
+        specialties (
+          id,
+          name,
+          degree,
+          department_id,
+          departments (
+            id,
+            name
+          )
+        ),
+        levels (
+          id,
+          name,
+          code
+        ),
+        unites (
+          id,
+          name,
+          code
+        )
       `)
-      .order('created_at', { ascending: false });
+      .order("created_at", { ascending: false });
     
     if (error) throw new Error(error.message);
     return data;

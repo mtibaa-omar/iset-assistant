@@ -1,0 +1,435 @@
+import { useState, useMemo, useRef, useCallback } from "react";
+import { Plus, Save, Loader2, Trash2, FilterX, Video as VideoIcon } from "lucide-react";
+import { useVideos } from "../features/admin/useVideos";
+import { useCreateVideo, useUpdateVideo, useDeleteVideo } from "../features/admin/useVideosMutations";
+import { useLevels } from "../features/admin/useLevels";
+import { useSpecialties } from "../features/admin/useSpecialties";
+import { useAdminFilters, formatDateShortFR } from "../features/admin/hooks/useAdminFilters";
+import AdminTable from "../features/admin/components/AdminTable";
+import ActionsCellRenderer from "../features/admin/components/ActionsCellRenderer";
+import Button from "../ui/components/Button";
+import Spinner from "../ui/components/Spinner";
+import Input from "../ui/components/Input";
+import Select from "../ui/components/Select";
+import Modal from "../ui/components/Modal";
+import Confirm from "../ui/components/Confirm";
+
+const emptyVideo = {
+  title: "",
+  video_url: "",
+  description: "",
+  specialty_id: "",
+  level_id: "",
+};
+
+// Helper function to get video thumbnail from URL
+const getVideoThumbnail = (url) => {
+  if (!url) return null;
+  
+  // YouTube
+  const youtubeMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+  if (youtubeMatch) {
+    return `https://img.youtube.com/vi/${youtubeMatch[1]}/mqdefault.jpg`;
+  }
+  
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    // Note: Vimeo thumbnails require API call, using placeholder
+    return null;
+  }
+  
+  return null;
+};
+
+// Video Thumbnail Cell Renderer
+const VideoThumbnailCellRenderer = (params) => {
+  const thumbnail = getVideoThumbnail(params.value);
+  
+  if (thumbnail) {
+    return (
+      <div className="flex items-center h-full">
+        <img
+          src={thumbnail}
+          alt="Video thumbnail"
+          className="w-16 h-12 object-cover rounded-lg border border-slate-200 dark:border-zinc-700"
+        />
+      </div>
+    );
+  }
+  
+  return (
+    <div className="flex items-center h-full">
+      <div className="w-16 h-12 flex items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+        <VideoIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+      </div>
+    </div>
+  );
+};
+
+// Video URL Cell Renderer
+const VideoUrlCellRenderer = (params) => {
+  if (!params.value) return <span className="text-slate-400">-</span>;
+  
+  return (
+    <a
+      href={params.value}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 underline text-sm truncate block max-w-xs"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {params.value}
+    </a>
+  );
+};
+
+export default function AdminVideos() {
+  const gridRef = useRef(null);
+  const { videos, isLoading } = useVideos();
+  const { levels, isLoading: isLevelsLoading } = useLevels();
+  const { specialties, isLoading: isSpecialtiesLoading } = useSpecialties();
+  const { createVideo, isCreating } = useCreateVideo();
+  const { updateVideo, isUpdating } = useUpdateVideo();
+  const { deleteVideo, isDeleting } = useDeleteVideo();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState(null);
+  const [formData, setFormData] = useState(emptyVideo);
+  
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const {
+    filterDegree,
+    filterLevel,
+    filterSpecialty,
+    handleDegreeChange,
+    handleLevelChange,
+    setFilterSpecialty,
+    resetFilters,
+    hasActiveFilters,
+    degreeOptions,
+    levelOptions,
+    specialtyOptions,
+    doesExternalFilterPass,
+    isExternalFilterPresent,
+  } = useAdminFilters({ levels, specialties, data: videos });
+
+  const specialtyFormOptions = useMemo(() => [
+    { value: "", label: "Aucune spécialité" },
+    ...specialties.map(s => ({ value: s.id, label: `${s.name} (${s.degree === 'licence' ? 'L' : 'M'})` }))
+  ], [specialties]);
+
+  const levelFormOptions = useMemo(() => [
+    { value: "", label: "Aucun niveau" },
+    ...levels.map(l => ({ value: l.id, label: l.name }))
+  ], [levels]);
+
+  const videosWithComputedFields = useMemo(() => {
+    return videos.map(v => ({
+      ...v,
+      specialty_name: v.specialties?.name || "-",
+      level_name: v.levels?.name || "-",
+      formatted_date: formatDateShortFR(v.created_at),
+    }));
+  }, [videos]);
+
+  const columnDefs = useMemo(() => [
+    { 
+      field: "video_url",
+      headerName: "Aperçu", 
+      width: 100,
+      cellRenderer: VideoThumbnailCellRenderer,
+      sortable: false,
+      filter: false,
+    },
+    { 
+      field: "title", 
+      headerName: "Titre", 
+      flex: 2,
+      filter: true,
+      sortable: true,
+    },
+    { 
+      field: "specialty_name", 
+      headerName: "Spécialité", 
+      flex: 1,
+      filter: true,
+      sortable: true,
+    },
+    { 
+      field: "level_name", 
+      headerName: "Niveau", 
+      width: 120,
+      filter: true,
+      sortable: true,
+    },
+    { 
+      field: "video_url", 
+      headerName: "Lien", 
+      flex: 1,
+      cellRenderer: VideoUrlCellRenderer,
+      sortable: false,
+    },
+    { 
+      field: "formatted_date", 
+      headerName: "Date", 
+      width: 100,
+      sortable: true,
+    },
+    { 
+      headerName: "Actions", 
+      width: 100,
+      cellRenderer: ActionsCellRenderer,
+      sortable: false,
+      filter: false,
+      pinned: "right",
+    },
+  ], []);
+
+  const context = useMemo(() => ({
+    onEdit: (video) => {
+      setEditingVideo(video);
+      setFormData({
+        title: video.title,
+        video_url: video.video_url,
+        description: video.description || "",
+        specialty_id: video.specialty_id || "",
+        level_id: video.level_id || "",
+      });
+      setIsModalOpen(true);
+    },
+    onDelete: (video) => {
+      setDeleteTargetId(video.id);
+      setIsConfirmOpen(true);
+    },
+    isDeleting,
+  }), [isDeleting]);
+
+  const onSelectionChanged = useCallback(() => {
+    const selectedNodes = gridRef.current?.api?.getSelectedRows() || [];
+    setSelectedRows(selectedNodes);
+  }, []);
+
+  const handleOpenModal = () => {
+    setEditingVideo(null);
+    setFormData(emptyVideo);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingVideo(null);
+    setFormData(emptyVideo);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const videoData = {
+      title: formData.title,
+      video_url: formData.video_url,
+      description: formData.description || null,
+      specialty_id: formData.specialty_id || null,
+      level_id: formData.level_id || null,
+    };
+
+    if (editingVideo) {
+      updateVideo(
+        { id: editingVideo.id, data: videoData },
+        { onSuccess: handleCloseModal }
+      );
+    } else {
+      createVideo(videoData, { onSuccess: handleCloseModal });
+    }
+  };
+
+  const handleDelete = () => {
+    if (deleteTargetId) {
+      deleteVideo(deleteTargetId);
+    }
+    setIsConfirmOpen(false);
+    setDeleteTargetId(null);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedRows.length === 0) return;
+    
+    selectedRows.forEach((video) => {
+      deleteVideo(video.id);
+    });
+    
+    setSelectedRows([]);
+    gridRef.current?.api?.deselectAll();
+  };
+
+  if (isLoading || isLevelsLoading || isSpecialtiesLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            Admin Vidéos
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-zinc-400 mt-1">
+            Gérer les vidéos éducatives
+          </p>
+        </div>
+        <Button onClick={handleOpenModal}>
+          <Plus className="w-4 h-4 mr-2" />
+          Ajouter une vidéo
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Select
+          value={filterDegree}
+          onChange={(e) => handleDegreeChange(e.target.value)}
+          options={degreeOptions}
+        />
+        <Select
+          value={filterLevel}
+          onChange={(e) => handleLevelChange(e.target.value)}
+          options={levelOptions}
+        />
+        <Select
+          value={filterSpecialty}
+          onChange={(e) => setFilterSpecialty(e.target.value)}
+          options={specialtyOptions}
+        />
+        {hasActiveFilters && (
+          <Button variant="secondary" onClick={resetFilters}>
+            <FilterX className="w-4 h-4 mr-2" />
+            Réinitialiser
+          </Button>
+        )}
+      </div>
+
+      {selectedRows.length > 0 && (
+        <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+          <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
+            {selectedRows.length} vidéo(s) sélectionnée(s)
+          </span>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={handleBulkDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Suppression...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer la sélection
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
+      <AdminTable
+        ref={gridRef}
+        rowData={videosWithComputedFields}
+        columnDefs={columnDefs}
+        onSelectionChanged={onSelectionChanged}
+        context={context}
+        doesExternalFilterPass={doesExternalFilterPass}
+        isExternalFilterPresent={isExternalFilterPresent}
+        noRowsMessage={hasActiveFilters ? "Aucune vidéo correspondant aux filtres" : "Aucune vidéo pour le moment"}
+      />
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingVideo ? "Modifier la vidéo" : "Ajouter une vidéo"}
+      >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <Input
+            label="Titre"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+          
+          <Input
+            label="URL de la vidéo"
+            type="url"
+            value={formData.video_url}
+            onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+            placeholder="https://www.youtube.com/watch?v=..."
+            required
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">
+              Description (optionnel)
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-600 focus:border-transparent"
+              placeholder="Brève description de la vidéo..."
+            />
+          </div>
+
+          <Select
+            label="Spécialité (optionnel)"
+            value={formData.specialty_id}
+            onChange={(e) => setFormData({ ...formData, specialty_id: e.target.value })}
+            options={specialtyFormOptions}
+          />
+
+          <Select
+            label="Niveau (optionnel)"
+            value={formData.level_id}
+            onChange={(e) => setFormData({ ...formData, level_id: e.target.value })}
+            options={levelFormOptions}
+          />
+
+          <div className="flex justify-end gap-3 mt-6">
+            <Button type="button" variant="secondary" onClick={handleCloseModal}>
+              Annuler
+            </Button>
+            <Button type="submit" disabled={isCreating || isUpdating}>
+              {isCreating || isUpdating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {editingVideo ? "Modification..." : "Création..."}
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  {editingVideo ? "Modifier" : "Créer"}
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Confirm
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleDelete}
+        title="Supprimer la vidéo"
+        message="Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+      />
+    </div>
+  );
+}

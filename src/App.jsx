@@ -23,6 +23,7 @@ import Admin from "./pages/Admin";
 import AdminSubjects from "./pages/AdminSubjects";
 import AdminUnites from "./pages/AdminUnites";
 import AdminPrograms from "./pages/AdminPrograms";
+import AdminVideos from "./pages/AdminVideos";
 
 import EspaceMatiere from "./pages/EspaceMatiere";
 
@@ -64,6 +65,7 @@ export default function App() {
               <Route path="admin/subjects" element={<AdminRoute><AdminSubjects /></AdminRoute>} />
               <Route path="admin/unites" element={<AdminRoute><AdminUnites /></AdminRoute>} />
               <Route path="admin/programs" element={<AdminRoute><AdminPrograms /></AdminRoute>} />
+              <Route path="admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
               <Route path="account" element={<Profile />} />
             </Route>
 
