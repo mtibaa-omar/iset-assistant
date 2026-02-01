@@ -26,6 +26,8 @@ import AdminPrograms from "./pages/AdminPrograms";
 import AdminVideos from "./pages/AdminVideos";
 
 import EspaceMatiere from "./pages/EspaceMatiere";
+import ChatPage from "./pages/ChatPage";
+import DMPage from "./pages/DMPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +60,8 @@ export default function App() {
               <Route path="actualites" element={<News />} />
               <Route path="actualites/:id" element={<NewsDetail />} />
               <Route path="matieres" element={<EspaceMatiere />} />
+              <Route path="chat/:subjectId" element={<ChatPage />} />
+              <Route path="messages/:username" element={<DMPage />} />
               <Route path="moyenne" element={<Calcul />} />
               <Route path="outils" element={<Home />} />
               <Route path="tutoriels" element={<Home />} />

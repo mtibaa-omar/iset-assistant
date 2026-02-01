@@ -4,6 +4,7 @@ import { MessageCircle, FilterX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../features/auth/useUser";
 import { useSubjectsByProgram } from "../features/grades/useSubjects";
+import { useAccessibleSubjectsWithUnread } from "../features/chat/useSubjects";
 import Select from "../ui/components/Select";
 import Button from "../ui/components/Button";
 import { useDarkMode } from "../context/DarkModeContext";
@@ -21,14 +22,21 @@ const getDefaultSemester = () => {
 
 const ChatCellRenderer = (params) => {
   const navigate = useNavigate();
+  const unreadCount = params.data.unread_count || 0;
+  
   return (
     <div className="flex items-center justify-center h-full">
       <button
         onClick={() => navigate(`/chat/${params.data.id}`)}
-        className="p-1.5 rounded-lg transition-colors"
+        className="relative p-1.5 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
         title="Ouvrir la discussion"
       >
         <MessageCircle className="w-5 h-5" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center px-1 text-[9px] font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-sm">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
       </button>
     </div>
   );
@@ -53,16 +61,21 @@ export default function EspaceMatiere() {
   const levelId = user?.level_id;
 
   const { subjects, isLoading } = useSubjectsByProgram(specialtyId, levelId);
+  const { data: subjectsWithUnread = [] } = useAccessibleSubjectsWithUnread();
 
   const filteredData = useMemo(() => {
     return subjects
       .filter((s) => s.semester === selectedSemester)
-      .map((s) => ({
-        id: s.id,
-        name: s.subjects?.name || "N/A",
-        mode: s.mode === "cours" ? "Cours" : "Atelier",
-      }));
-  }, [subjects, selectedSemester]);
+      .map((s) => {
+        const unreadData = subjectsWithUnread.find(su => su.id === s.id);
+        return {
+          id: s.id,
+          name: s.subjects?.name || "N/A",
+          mode: s.mode === "cours" ? "Cours" : "Atelier",
+          unread_count: unreadData?.unread_count || 0,
+        };
+      });
+  }, [subjects, selectedSemester, subjectsWithUnread]);
 
   const columnDefs = useMemo(() => [
     { 

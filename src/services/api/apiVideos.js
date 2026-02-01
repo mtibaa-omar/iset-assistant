@@ -59,4 +59,28 @@ export const videosAPI = {
 
     if (error) throw new Error(error.message);
   },
+
+  getRecentVideos: async (specialtyId, levelId, userCreatedAt) => {
+    if (!specialtyId || !levelId || !userCreatedAt) return [];
+
+    const { data, error } = await supabase
+      .from("videos")
+      .select(`
+        id,
+        title,
+        description,
+        video_url,
+        specialty_id,
+        level_id,
+        created_at
+      `)
+      .or(`specialty_id.eq.${specialtyId},specialty_id.is.null`)
+      .or(`level_id.eq.${levelId},level_id.is.null`)
+      .gt("created_at", userCreatedAt)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
 };

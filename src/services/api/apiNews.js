@@ -11,40 +11,13 @@ export const newsAPI = {
       .order('created_at', { ascending: false });
     
     if (error) throw new Error(error.message);
-    
     const newsWithViews = (data || []).map(newsItem => ({
       ...newsItem,
-      views_count: Array.isArray(newsItem.views_count) ? newsItem.views_count.length : 0
+      views_count: Array.isArray(newsItem.views_count) && newsItem.views_count.length > 0
+        ? newsItem.views_count[0].count
+        : 0
     }));
-    
     return newsWithViews;
-  },
-
-  getRecent: async (days = 7) => {
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-
-    const { data: news, error: newsError } = await supabase
-      .from('news')
-      .select('id, title, image_url, created_at')
-      .gte('created_at', since.toISOString())
-      .order('created_at', { ascending: false })
-      .limit(10);
-    
-    if (newsError) throw new Error(newsError.message);
-    if (!news || news.length === 0) return [];
-
-    const newsIds = news.map(n => n.id);
-    const { data: readState } = await supabase
-      .from('news_read_state')
-      .select('news_id')
-      .eq('user_id', user.id)
-      .in('news_id', newsIds);
-
-    const readNewsIds = new Set(readState?.map(r => r.news_id) || []);
-    const unreadNews = news.filter(n => !readNewsIds.has(n.id));
-    
-    return unreadNews.slice(0, 5);
   },
 
   markAsRead: async (newsId) => {
@@ -52,21 +25,27 @@ export const newsAPI = {
       p_news_id: newsId 
     });
     
-    if (error) {
-      console.error("[News] Error marking as read:", error);
-      return;
-    }
+    if (error) throw new Error(error.message);
   },
 
   getById: async (id) => {
     const { data, error } = await supabase
       .from('news')
-      .select('*')
+      .select(`
+        *,
+        views_count:news_read_state(count)
+      `)
       .eq('id', id)
       .single();
     
     if (error) throw new Error(error.message);
-    return data;
+    
+    return {
+      ...data,
+      views_count: Array.isArray(data.views_count) && data.views_count.length > 0
+        ? data.views_count[0].count
+        : 0
+    };
   },
 
   create: async (newsData) => {
@@ -99,5 +78,15 @@ export const newsAPI = {
       .eq('id', id);
     
     if (error) throw new Error(error.message);
+  },
+
+  getUnreadNews: async (userCreatedAt) => {
+    const { data, error } = await supabase.rpc("get_unread_news");
+    if (error) throw new Error(error.message);
+    if (userCreatedAt) {
+      return (data || []).filter(item => item.created_at > userCreatedAt);
+    }
+    
+    return data || [];
   },
 };

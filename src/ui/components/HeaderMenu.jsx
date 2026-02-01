@@ -4,11 +4,23 @@ import { Link } from "react-router-dom";
 import { useDarkMode } from "../../context/DarkModeContext";
 import NotificationPanel from "./NotificationPanel";
 import { useLogout } from "../../features/auth/useLogout";
+import { useConversations } from "../../features/dm/useDM";
+import { useUnreadNews } from "../../features/news/useNewsNotifications";
+import { useRecentVideos } from "../../features/videos/useVideoNotifications";
 
 export default function HeaderMenu() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { isLoading, logout } = useLogout();
+  const { conversations } = useConversations();
+  const { unreadCount: newsUnread } = useUnreadNews();
+  const { count: videosCount } = useRecentVideos();
+
+  const dmUnread = conversations.reduce(
+    (sum, c) => sum + (c.unread_count || 0),
+    0
+  );
+  const totalUnread = dmUnread + newsUnread + videosCount;
 
   const buttonBase = `
     p-2.5 rounded-full cursor-pointer transition-all duration-200
@@ -53,7 +65,11 @@ export default function HeaderMenu() {
           title="Notifications"
         >
           <Bell className="text-slate-700 dark:text-white size-5 lg:size-4" />
-          <span className="absolute w-2.5 h-2.5 bg-red-500 rounded-full top-0 right-0 ring-2 ring-white dark:ring-slate-900"></span>
+          {totalUnread > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full ring-2 ring-white dark:ring-zinc-900">
+              {totalUnread > 9 ? "9+" : totalUnread}
+            </span>
+          )}
         </button>
         <NotificationPanel
           isOpen={isNotificationOpen}

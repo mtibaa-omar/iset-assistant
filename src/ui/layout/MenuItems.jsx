@@ -1,16 +1,18 @@
 import {
   Calculator,
   Home,
-  ShieldUser,
   MonitorPlayIcon,
   Newspaper,
   Notebook,
   ToolCase,
   Layers,
   BookOpen,
+  Video,
 } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
 import { useUser } from "../../features/auth/useUser";
+import MessagesSection from "./MessagesSection";
+import SubjectsSection from "./SubjectsSection";
 
 export default function MenuItems({ collapsed, onNavigate }) {
   const { isAdmin } = useUser();
@@ -60,6 +62,8 @@ export default function MenuItems({ collapsed, onNavigate }) {
         collapsed={collapsed}
       />
 
+      <MessagesSection collapsed={collapsed} onNavigate={onNavigate} />
+      <SubjectsSection collapsed={collapsed} onNavigate={onNavigate} />
       {isAdmin && (
         <>
           <div className="w-full px-2 my-3">
@@ -95,6 +99,14 @@ export default function MenuItems({ collapsed, onNavigate }) {
             icon={<Layers className="w-5 h-5" />}
             label="Admin Affectations"
             to="/admin/programs"
+            onNavigate={onNavigate}
+            collapsed={collapsed}
+          />
+
+          <SidebarItem
+            icon={<Video className="w-5 h-5" />}
+            label="Admin Vidéos"
+            to="/admin/videos"
             onNavigate={onNavigate}
             collapsed={collapsed}
           />
