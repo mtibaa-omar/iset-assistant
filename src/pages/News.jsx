@@ -15,7 +15,7 @@ export default function News() {
     );
   }
   return (
-    <div className="min-h-full pb-8">
+    <div className="min-h-full md:pl-4 lg:pl-8">
       <div className="pr-16 mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">

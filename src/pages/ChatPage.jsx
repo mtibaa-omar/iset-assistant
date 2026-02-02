@@ -1,20 +1,25 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { MessageSquare } from "lucide-react";
-import { useMessages, useSendMessage, useSubjectInfo, useMarkAsRead } from "../features/chat/useChat";
+import { useMessages, useSendMessage, useSubjectInfo, useMarkAsRead, useDeleteMessage, useUpdateMessage } from "../features/chat/useChat";
 import ChatHeader from "../features/chat/ChatHeader";
 import MessageBubble from "../features/chat/MessageBubble";
 import MessageInput from "../features/chat/MessageInput";
 import Spinner from "../ui/components/Spinner";
+import Confirm from "../ui/components/Confirm";
 
 export default function ChatPage() {
   const { subjectId } = useParams();
   const messagesEndRef = useRef(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   const { subject, isLoading: isLoadingSubject } = useSubjectInfo(subjectId);
   const { messages, isLoading: isLoadingMessages } = useMessages(subjectId);
   const { sendMessage, isSending } = useSendMessage();
   const { markAsRead } = useMarkAsRead();
+  const { deleteMessage } = useDeleteMessage();
+  const { updateMessage } = useUpdateMessage();
 
   useEffect(() => {
     if (subjectId) {
@@ -39,6 +44,32 @@ export default function ChatPage() {
       cloudinaryPublicId: uploadResult.cloudinaryPublicId,
       fileName: uploadResult.fileName,
     });
+  };
+
+  const handleDeleteMessage = (messageId) => {
+    setMessageToDelete(messageId);
+  };
+
+  const confirmDelete = () => {
+    if (messageToDelete) {
+      deleteMessage({ messageId: messageToDelete, programSubjectId: subjectId });
+      setMessageToDelete(null);
+    }
+  };
+
+  const handleEditMessage = (messageId, currentBody) => {
+    setEditingMessage({ id: messageId, body: currentBody });
+  };
+
+  const handleSaveEdit = (newBody) => {
+    if (editingMessage && newBody.trim()) {
+      updateMessage({ messageId: editingMessage.id, newBody: newBody.trim(), programSubjectId: subjectId });
+      setEditingMessage(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
   };
 
   if (isLoadingMessages) {
@@ -69,7 +100,13 @@ export default function ChatPage() {
         ) : (
           <div className="space-y-1">
             {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
+              <MessageBubble 
+                key={message.id} 
+                message={message} 
+                onDelete={handleDeleteMessage}
+                onEdit={handleEditMessage}
+                isEditing={editingMessage?.id === message.id}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
@@ -81,6 +118,20 @@ export default function ChatPage() {
         onSendFile={handleSendFile}
         isSending={isSending}
         disabled={!subjectId}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onSaveEdit={handleSaveEdit}
+      />
+
+      <Confirm
+        isOpen={!!messageToDelete}
+        onClose={() => setMessageToDelete(null)}
+        onConfirm={confirmDelete}
+        variant="delete"
+        title="Supprimer le message"
+        message="Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
       />
     </div>
   );

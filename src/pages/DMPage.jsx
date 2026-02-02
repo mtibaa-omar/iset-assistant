@@ -1,18 +1,21 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, AlertCircle } from "lucide-react";
-import { useUserByUsername, useDMConversation, useSendDM, useMarkAsRead } from "../features/dm/useDM";
+import { useUserByUsername, useDMConversation, useSendDM, useMarkAsRead, useDeleteDMMessage, useUpdateDMMessage } from "../features/dm/useDM";
 import { useUser } from "../features/auth/useUser";
 import MessageBubble from "../features/chat/MessageBubble";
 import MessageInput from "../features/chat/MessageInput";
 import Button from "../ui/components/Button";
 import Spinner from "../ui/components/Spinner";
+import Confirm from "../ui/components/Confirm";
 
 export default function DMPage() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
   const messagesEndRef = useRef(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   const { targetUser, isLoading: isLoadingUser, error: userError } = useUserByUsername(username);
 
@@ -21,6 +24,8 @@ export default function DMPage() {
   const { sendMessage, isSending } = useSendDM();
 
   const { markAsRead } = useMarkAsRead();
+  const { deleteMessage } = useDeleteDMMessage();
+  const { updateMessage } = useUpdateDMMessage();
 
   useEffect(() => {
     if (conversationId) {
@@ -46,6 +51,32 @@ export default function DMPage() {
       cloudinaryPublicId: uploadResult.cloudinaryPublicId,
       fileName: uploadResult.fileName,
     });
+  };
+
+  const handleDeleteMessage = (messageId) => {
+    setMessageToDelete(messageId);
+  };
+
+  const confirmDelete = () => {
+    if (messageToDelete) {
+      deleteMessage({ messageId: messageToDelete, conversationId });
+      setMessageToDelete(null);
+    }
+  };
+
+  const handleEditMessage = (messageId, currentBody) => {
+    setEditingMessage({ id: messageId, body: currentBody });
+  };
+
+  const handleSaveEdit = (newBody) => {
+    if (editingMessage && newBody.trim()) {
+      updateMessage({ messageId: editingMessage.id, newBody: newBody.trim(), conversationId });
+      setEditingMessage(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
   };
   if (isLoadingUser) {
     return (
@@ -140,7 +171,13 @@ export default function DMPage() {
         ) : (
           <div className="space-y-1">
             {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
+              <MessageBubble 
+                key={message.id} 
+                message={message}
+                onDelete={handleDeleteMessage}
+                onEdit={handleEditMessage}
+                isEditing={editingMessage?.id === message.id}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
@@ -149,9 +186,23 @@ export default function DMPage() {
 
       <MessageInput
         onSend={handleSendMessage}
-        isSending={isSending}
         onSendFile={handleSendFile}
+        isSending={isSending}
         disabled={!conversationId}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onSaveEdit={handleSaveEdit}
+      />
+
+      <Confirm
+        isOpen={!!messageToDelete}
+        onClose={() => setMessageToDelete(null)}
+        onConfirm={confirmDelete}
+        variant="delete"
+        title="Supprimer le message"
+        message="Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
       />
     </div>
   );

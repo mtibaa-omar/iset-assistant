@@ -15,7 +15,7 @@ export default function Sidebar({ className }) {
         </button>
       </div>
 
-      <div className="flex flex-col self-stretch flex-1 w-full overflow-y-auto">
+      <div className={`flex flex-col self-stretch flex-1 w-full ${collapsed ? "overflow-visible" : "overflow-y-auto"}`}>
         <div className={`flex flex-col items-start gap-1 ${collapsed ? "px-2" : "px-3"} py-0 relative self-stretch w-full`}>
           <MenuItems collapsed={collapsed} />
         </div>

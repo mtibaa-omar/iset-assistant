@@ -11,6 +11,8 @@ export const chatAPI = {
         body,
         kind,
         created_at,
+        edited_at,
+        deleted_at,
         sender_id,
         cloudinary_url,
         file_name,
@@ -22,7 +24,6 @@ export const chatAPI = {
         )
       `)
       .eq("program_subject_id", programSubjectId)
-      .is("deleted_at", null)
       .order("created_at", { ascending: true });
 
     if (error) throw new Error(error.message);
@@ -151,6 +152,35 @@ export const chatAPI = {
     });
 
     if (error) throw new Error(error.message);
+  },
+
+  // Delete a message 
+  deleteMessage: async (messageId) => {
+    const { error } = await supabase
+      .from("subject_messages")
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        body: null,
+        cloudinary_url: null,
+        cloudinary_public_id: null,
+        file_name: null
+      })
+      .eq("id", messageId);
+
+    if (error) throw new Error(error.message);
+  },
+
+  // Update a message
+  updateMessage: async (messageId, newBody) => {
+    const { data, error } = await supabase
+      .from("subject_messages")
+      .update({ body: newBody, edited_at: new Date().toISOString() })
+      .eq("id", messageId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
   },
 
   // Get accessible subjects with unread counts (for navigation)

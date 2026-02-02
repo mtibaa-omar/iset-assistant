@@ -81,3 +81,43 @@ export function useMarkAsRead() {
 
   return { markAsRead };
 }
+
+export function useDeleteMessage() {
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteMessage, isPending: isDeleting } = useMutation({
+    mutationFn: ({ messageId }) => chatAPI.deleteMessage(messageId),
+    onSuccess: (_, { programSubjectId, messageId }) => {
+      queryClient.setQueryData(chatKeys.messages(programSubjectId), (old) => {
+        if (!old) return [];
+        return old.map((msg) => 
+          msg.id === messageId 
+            ? { ...msg, deleted_at: new Date().toISOString() } 
+            : msg
+        );
+      });
+    },
+  });
+
+  return { deleteMessage, isDeleting };
+}
+
+export function useUpdateMessage() {
+  const queryClient = useQueryClient();
+
+  const { mutate: updateMessage, isPending: isUpdating } = useMutation({
+    mutationFn: ({ messageId, newBody }) => chatAPI.updateMessage(messageId, newBody),
+    onSuccess: (updatedMessage, { programSubjectId }) => {
+      queryClient.setQueryData(chatKeys.messages(programSubjectId), (old) => {
+        if (!old) return [];
+        return old.map((msg) => 
+          msg.id === updatedMessage.id 
+            ? { ...msg, body: updatedMessage.body, edited_at: updatedMessage.edited_at } 
+            : msg
+        );
+      });
+    },
+  });
+
+  return { updateMessage, isUpdating };
+}

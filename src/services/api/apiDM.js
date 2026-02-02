@@ -28,15 +28,33 @@ export const dmAPI = {
     return data[0];
   },
 
+  // Search users by name
+  searchUsers: async (query) => {
+    if (!query || query.trim().length < 3) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from("profile_public")
+      .select("id, full_name, avatar_url")
+      .ilike("full_name", `%${query.trim()}%`)
+      .limit(10);
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
+
   // Get all messages for a conversation with sender info
   getMessages: async (conversationId) => {
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from("dm_messages")
       .select(`
         id,
         body,
         kind,
         created_at,
+        edited_at,
+        deleted_at,
         sender_id,
         cloudinary_url,
         file_name,
@@ -47,7 +65,6 @@ export const dmAPI = {
         )
       `)
       .eq("conversation_id", conversationId)
-      .is("deleted_at", null)
       .order("created_at", { ascending: true });
 
     if (error) throw new Error(error.message);
@@ -187,5 +204,34 @@ export const dmAPI = {
       );
 
     if (error) throw new Error(error.message);
+  },
+
+  // Delete a DM message
+  deleteMessage: async (messageId) => {
+    const { error } = await supabase
+      .from("dm_messages")
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        body: null,
+        cloudinary_url: null,
+        cloudinary_public_id: null,
+        file_name: null
+      })
+      .eq("id", messageId);
+
+    if (error) throw new Error(error.message);
+  },
+
+  // Update a DM message
+  updateMessage: async (messageId, newBody) => {
+    const { data, error } = await supabase
+      .from("dm_messages")
+      .update({ body: newBody, edited_at: new Date().toISOString() })
+      .eq("id", messageId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
   },
 };

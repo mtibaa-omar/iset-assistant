@@ -1,14 +1,14 @@
 import { LoaderCircle } from "lucide-react";
 
-export default function Spinner({ className = "" }) {
+export default function Spinner({ className = "", size = "h-[6.4rem] w-[6.4rem]" }) {
   return (
     <div
-      className={`flex items-center justify-center my-[4.8rem] ${className}`}
+      className={`flex items-center justify-center my-4 ${className}`}
       aria-label="Loading"
       role="status"
     >
       <LoaderCircle
-        className="h-[6.4rem] w-[6.4rem] animate-spin text-gray-400"
+        className={`${size} animate-spin text-gray-400`}
         strokeWidth={1.5}
       />
     </div>

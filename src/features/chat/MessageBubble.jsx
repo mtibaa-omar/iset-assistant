@@ -1,8 +1,10 @@
 import { useUser } from "../auth/useUser";
+import { Trash2 } from "lucide-react";
 import MessageAvatar from "./MessageAvatar";
 import MessageContent from "./MessageContent";
+import MessageMenu from "./MessageMenu";
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, onDelete, onEdit, isEditing }) {
   const { user } = useUser();
   const isOwn = message.sender_id === user?.id;
   const senderName = message.sender?.full_name;
@@ -14,11 +16,14 @@ export default function MessageBubble({ message }) {
     minute: "2-digit",
   });
 
+  const isModified = message.edited_at && !message.deleted_at;
+  const isDeleted = !!message.deleted_at;
+
   return (
     <div
-      className={`flex gap-3 px-4 py-2 ${
+      className={`group flex gap-3 px-4 py-2 transition-all ${
         isOwn ? "flex-row-reverse" : "flex-row"
-      }`}
+      } ${isEditing ? "bg-blue-50 dark:bg-blue-900/10" : ""}`}
     >
       <MessageAvatar
         avatarUrl={avatarUrl}
@@ -38,22 +43,54 @@ export default function MessageBubble({ message }) {
           </span>
         )}
 
-        <div
-          className={`rounded-2xl shadow-sm overflow-hidden max-w-md ${
-            isOwn
-              ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-md"
-              : "bg-white dark:bg-zinc-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-zinc-700 rounded-bl-md"
-          }`}
-        >
-          <MessageContent message={message} isOwn={isOwn} />
+        <div className="flex items-center gap-2">
+          {isOwn && !isDeleted && (
+            <MessageMenu
+              onDelete={() => onDelete(message.id)}
+              onEdit={() => onEdit(message.id, message.body)}
+              isOwn={isOwn}
+            />
+          )}
+
+          <div
+            className={`rounded-2xl shadow-sm overflow-hidden max-w-md ${
+              isDeleted
+                ? "bg-slate-50 dark:bg-zinc-800/20 border border-dashed border-slate-200 dark:border-zinc-700 rounded-lg"
+                : isOwn
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-md"
+                : "bg-white dark:bg-zinc-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-zinc-700 rounded-bl-md"
+            }`}
+          >
+            {isDeleted ? (
+              <div className="flex items-center gap-2 px-3 py-2 italic text-slate-400 dark:text-zinc-500">
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="text-xs">Message supprimé</span>
+              </div>
+            ) : (
+              <MessageContent message={message} isOwn={isOwn} />
+            )}
+          </div>
+
+          {!isOwn && !isDeleted && (
+            <MessageMenu
+              onDelete={() => onDelete(message.id)}
+              onEdit={() => onEdit(message.id, message.body)}
+              isOwn={isOwn}
+            />
+          )}
         </div>
 
         <span
-          className={`text-[10px] text-slate-400 dark:text-slate-500 mt-1 px-1 ${
-            isOwn ? "text-right" : "text-left"
+          className={`text-[10px] text-slate-400 dark:text-slate-500 mt-1 px-1 flex items-center gap-1 ${
+            isOwn ? "text-right flex-row-reverse" : "text-left"
           }`}
         >
           {time}
+          {isModified && (
+            <span className="italic opacity-75">
+              (modifié)
+            </span>
+          )}
         </span>
       </div>
     </div>

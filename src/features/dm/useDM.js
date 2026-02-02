@@ -5,6 +5,17 @@ import { dmAPI } from "../../services/api/apiDM";
 import { dmKeys } from "./dmKeys";
 import { useUser } from "../auth/useUser";
 
+// Hook to search users
+export function useSearchUsers(query) {
+  const { data: users, isLoading } = useQuery({
+    queryKey: dmKeys.searchUsers(query),
+    queryFn: () => dmAPI.searchUsers(query),
+    enabled: query.trim().length >= 3,
+  });
+
+  return { users: users || [], isLoading };
+}
+
 // Hook to get user by username
 export function useUserByUsername(username) {
   const { data: targetUser, isLoading, error } = useQuery({
@@ -96,13 +107,60 @@ export function useSendDM() {
 // Hook to get all conversations for current user (with unread counts)
 export function useConversations() {
   const { user } = useUser();
+  const queryClient = useQueryClient();
 
   const { data: conversations, isLoading, refetch } = useQuery({
     queryKey: dmKeys.conversations(user?.id),
-    queryFn: () => dmAPI.getConversations(user?.id),
+    queryFn: () => dmAPI.getConversations(),
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refetch every 30s to update unread counts
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log("[DM] Setting up real-time subscription for user:", user.id);
+
+    const channelName = `dm-conversations-${user.id}-${Date.now()}`;
+    const messagesChannel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "dm_messages",
+        },
+        (payload) => {
+          console.log("[DM] New message detected:", payload);
+          // Refetch conversations to update unread counts
+          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "dm_read_state",
+        },
+        (payload) => {
+          console.log("[DM] Read state changed:", payload);
+          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
+        }
+      )
+      .subscribe((status, err) => {
+        if (err) {
+          console.error("[DM] Subscription error:", err);
+        } else {
+          console.log("[DM] Subscription status:", status);
+        }
+      });
+
+    return () => {
+      console.log("[DM] Cleaning up subscription");
+      messagesChannel.unsubscribe();
+    };
+  }, [user?.id, queryClient]);
 
   return { conversations: conversations || [], isLoading, refetch };
 }
@@ -122,4 +180,46 @@ export function useMarkAsRead() {
   };
 
   return { markAsRead };
+}
+
+// Hook to delete a DM message
+export function useDeleteDMMessage() {
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteMessage, isPending: isDeleting } = useMutation({
+    mutationFn: ({ messageId }) => dmAPI.deleteMessage(messageId),
+    onSuccess: (_, { conversationId, messageId }) => {
+      queryClient.setQueryData(dmKeys.messages(conversationId), (old) => {
+        if (!old) return [];
+        return old.map((msg) => 
+          msg.id === messageId 
+            ? { ...msg, deleted_at: new Date().toISOString() } 
+            : msg
+        );
+      });
+    },
+  });
+
+  return { deleteMessage, isDeleting };
+}
+
+// Hook to update a DM message
+export function useUpdateDMMessage() {
+  const queryClient = useQueryClient();
+
+  const { mutate: updateMessage, isPending: isUpdating } = useMutation({
+    mutationFn: ({ messageId, newBody }) => dmAPI.updateMessage(messageId, newBody),
+    onSuccess: (updatedMessage, { conversationId }) => {
+      queryClient.setQueryData(dmKeys.messages(conversationId), (old) => {
+        if (!old) return [];
+        return old.map((msg) => 
+          msg.id === updatedMessage.id 
+            ? { ...msg, body: updatedMessage.body, edited_at: updatedMessage.edited_at } 
+            : msg
+        );
+      });
+    },
+  });
+
+  return { updateMessage, isUpdating };
 }

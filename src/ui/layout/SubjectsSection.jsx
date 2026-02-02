@@ -1,10 +1,27 @@
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Notebook, BookOpen, Users } from "lucide-react";
 import { useAccessibleSubjectsWithUnread } from "../../features/chat/useSubjects";
+import CollapsedSubjectsMenu from "./CollapsedSubjectsMenu";
 
 export default function SubjectsSection({ collapsed, onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isMenuOpen]);
 
   const { data: subjects = [], isLoading } = useAccessibleSubjectsWithUnread();
   
@@ -21,16 +38,29 @@ export default function SubjectsSection({ collapsed, onNavigate }) {
     if (totalUnread === 0) return null;
     
     return (
-      <button
-        className="relative flex items-center justify-center w-full p-3 transition-all rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
-        title="Matières"
-        onClick={() => navigate("/matieres")}
-      >
-        <Notebook className="w-5 h-5" />
-        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-sm">
-          {totalUnread > 9 ? "9+" : totalUnread}
-        </span>
-      </button>
+      <div className="relative w-full">
+        <button
+          className={`relative flex items-center justify-center w-full p-3 transition-all rounded-xl ${
+            isMenuOpen 
+              ? "bg-slate-100 dark:bg-white/10 text-blue-600 dark:text-blue-400" 
+              : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
+          }`}
+          title="Matières"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <Notebook className="w-5 h-5" />
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-sm">
+            {totalUnread > 9 ? "9+" : totalUnread}
+          </span>
+        </button>
+
+        <CollapsedSubjectsMenu 
+          subjects={unreadSubjects}
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          onNavigate={onNavigate}
+        />
+      </div>
     );
   }
 
@@ -45,7 +75,7 @@ export default function SubjectsSection({ collapsed, onNavigate }) {
         {isLoading ? (
           <div className="px-3 py-2 text-xs text-slate-400">Chargement...</div>
         ) : (
-          unreadSubjects.slice(0, 5).map((subject) => {
+          (isExpanded ? unreadSubjects : unreadSubjects.slice(0, 5)).map((subject) => {
             const isActive = location.pathname === `/chat/${subject.id}`;
             const unreadCount = subject.unread_count || 0;
 
@@ -92,10 +122,10 @@ export default function SubjectsSection({ collapsed, onNavigate }) {
         
         {unreadSubjects.length > 5 && (
           <button
-            onClick={() => navigate("/matieres")}
+            onClick={() => setIsExpanded(!isExpanded)}
             className="w-full px-3 py-2 text-xs text-center transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
           >
-            Voir toutes ({unreadSubjects.length})
+            {isExpanded ? "Voir moins" : `Voir toutes (${unreadSubjects.length})`}
           </button>
         )}
       </div>

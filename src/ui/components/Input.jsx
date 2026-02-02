@@ -10,6 +10,7 @@ export const Input = forwardRef(function Input(
     error,
     hint,
     className = "",
+    inputClassName = "",
     disabled = false,
     ...props
   },
@@ -46,7 +47,7 @@ export const Input = forwardRef(function Input(
           type={type}
           placeholder={placeholder}
           disabled={disabled}
-          className={`${baseInputStyles} ${iconPadding} ${errorStyles} ${disabledStyles}`}
+          className={`${baseInputStyles} ${iconPadding} ${errorStyles} ${disabledStyles} ${inputClassName}`}
           {...props}
         />
       </div>

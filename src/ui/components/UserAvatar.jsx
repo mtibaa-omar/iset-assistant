@@ -12,13 +12,13 @@ export default function UserAvatar({ collapsed }) {
 
   return (
     <div 
-      className={`flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg p-2 -m-2 ${collapsed ? "justify-center w-full" : "w-full"}`}
+      className={`flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg py-2 ${collapsed ? "justify-center w-full -mb-6" : "w-full -mb-6 "}`}
       onClick={handleClick}
       role="button"
       tabIndex={0}
     >
       <img 
-        className="flex-shrink-0 object-cover w-12 h-12 rounded-full" 
+        className={`flex-shrink-0 object-cover rounded-full ${collapsed ? "w-12 h-12" : "w-12 h-12"}`} 
         alt={user?.user_metadata?.full_name || "User"} 
         src={user?.user_metadata?.avatar || user?.user_metadata?.avatar_url || "/image.png"} 
       />

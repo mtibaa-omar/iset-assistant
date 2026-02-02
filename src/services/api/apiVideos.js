@@ -83,4 +83,35 @@ export const videosAPI = {
     if (error) throw new Error(error.message);
     return data || [];
   },
+
+  getUserVideos: async (specialtyId, levelId) => {
+    if (!specialtyId || !levelId) return [];
+
+    const { data, error } = await supabase
+      .from("videos")
+      .select(`
+        id,
+        title,
+        description,
+        video_url,
+        specialty_id,
+        level_id,
+        created_at,
+        specialties (
+          id,
+          name,
+          degree
+        ),
+        levels (
+          id,
+          name
+        )
+      `)
+      .or(`specialty_id.eq.${specialtyId},specialty_id.is.null`)
+      .or(`level_id.eq.${levelId},level_id.is.null`)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
 };
