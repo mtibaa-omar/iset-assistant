@@ -1,10 +1,13 @@
 import { MessageSquare, Newspaper, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatSmartTime } from "../../utils/dateUtils";
 
 export function DMNotificationItem({ conv, user, onClose }) {
   const navigate = useNavigate();
   const otherUser = conv.user1.id === user?.id ? conv.user2 : conv.user1;
   const username = otherUser.full_name?.toLowerCase().replace(/\s+/g, "_") || "user";
+
+  const date = formatSmartTime(conv.last_message_at);
 
   const handleClick = () => {
     navigate(`/messages/${username}`);
@@ -27,10 +30,15 @@ export function DMNotificationItem({ conv, user, onClose }) {
         </span>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-semibold truncate text-slate-900 dark:text-white">
             {otherUser.full_name}
           </span>
+          {date && (
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              {date}
+            </span>
+          )}
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           {conv.unread_count} nouveau{conv.unread_count > 1 ? "x" : ""} message{conv.unread_count > 1 ? "s" : ""}
@@ -48,10 +56,7 @@ export function VideoNotificationItem({ video, onClose }) {
     onClose();
   };
 
-  const date = new Date(video.created_at).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "short",
-  });
+  const date = formatSmartTime(video.created_at);
 
   return (
     <button
@@ -59,7 +64,7 @@ export function VideoNotificationItem({ video, onClose }) {
       className="flex items-start w-full gap-3 p-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800/50"
     >
       <div className="relative flex-shrink-0">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br bg-red-500 to-pink-500">
+        <div className="flex items-center justify-center w-10 h-10 bg-red-500 rounded-lg bg-gradient-to-br to-pink-500">
           <Play className="w-5 h-5 text-white" />
         </div>
         <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 flex items-center justify-center bg-red-500 rounded-full">
@@ -87,10 +92,7 @@ export function NewsNotificationItem({ news, onClose }) {
     onClose();
   };
 
-  const date = new Date(news.created_at).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "short",
-  });
+  const date = formatSmartTime(news.created_at);
 
   return (
     <button

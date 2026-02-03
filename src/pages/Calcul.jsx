@@ -10,25 +10,23 @@ import {
 } from "../features/grades/useSubjects";
 import Button from "../ui/components/Button";
 import UniteCard from "../features/grades/UniteCard";
-import { calculateAverage } from "../utils/gradeCalculations";
+import { calculateTotals, getCurrentSemester } from "../utils/gradeCalculations";
 import Select from "../ui/components/Select";
 import StatCard from "../ui/components/StatCard";
+import { BsCalculator } from "react-icons/bs";
 
 const SEMESTERS = [
   { value: "S1", label: "Semestre 1" },
   { value: "S2", label: "Semestre 2" },
 ];
 
-const getDefaultSemester = () => {
-  const month = new Date().getMonth() + 1;
-  return month >= 9 || month <= 2 ? "S1" : "S2";
-};
+
 
 export default function Calcul() {
   const { user } = useUser();
   const [localGrades, setLocalGrades] = useState({});
   const [hasChanges, setHasChanges] = useState(false);
-  const [selectedSemester, setSelectedSemester] = useState(getDefaultSemester);
+  const [selectedSemester, setSelectedSemester] = useState(getCurrentSemester);
 
   const specialtyId = user?.specialty_id;
   const levelId = user?.level_id;
@@ -89,32 +87,7 @@ export default function Calcul() {
   }, []);
 
   const totals = useMemo(() => {
-    let totalCredit = 0,
-      creditAcquis = 0,
-      weightedSum = 0,
-      coefWithGrades = 0;
-    filteredSubjects.forEach((subject) => {
-      const g = gradesMap[subject.id] || {};
-      const avg = calculateAverage(
-        subject.mode,
-        g.note_dc,
-        g.note_exam,
-        g.note_tp1,
-        g.note_tp2,
-      );
-      totalCredit += parseFloat(subject.credit || 0);
-      if (avg) {
-        creditAcquis += parseFloat(avg) >= 10 ? subject.credit : 0;
-        weightedSum += parseFloat(avg) * parseFloat(subject.coefficient);
-        coefWithGrades += parseFloat(subject.coefficient);
-      }
-    });
-    return {
-      totalCredit,
-      creditAcquis,
-      generalAverage:
-        coefWithGrades > 0 ? (weightedSum / coefWithGrades).toFixed(2) : null,
-    };
+    return calculateTotals(filteredSubjects, gradesMap);
   }, [filteredSubjects, gradesMap]);
 
   const handleSave = () => {
@@ -150,11 +123,17 @@ export default function Calcul() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-        Grade Calculator
-      </h1>
-
+    <div className="min-h-full md:pl-4 lg:pl-8 pb-12">
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">
+            <BsCalculator className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold md:text-3xl text-slate-800 dark:text-white">
+            Calculatrice
+          </h1>
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatCard
           title="General Average"

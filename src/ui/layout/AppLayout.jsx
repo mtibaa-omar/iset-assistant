@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import SidebarMobile from "./SidebarMobile";
 import { Outlet } from "react-router-dom";
-import HeaderMenu from "../components/HeaderMenu";
+import HeaderMenu from "./HeaderMenu";
 import { Menu } from "lucide-react";
 
 export default function AppLayout() {

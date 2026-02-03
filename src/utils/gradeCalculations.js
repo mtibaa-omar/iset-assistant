@@ -16,3 +16,47 @@ export const validateGrade = (value) => {
   if (num > 20) return "Max 20";
   return null;
 };
+
+export const getCurrentSemester = () => {
+  const month = new Date().getMonth() + 1;
+  return month >= 9 || month <= 2 ? "S1" : "S2";
+};
+
+export const calculateTotals = (subjects, gradesMap) => {
+  let totalCredit = 0;
+  let creditAcquis = 0;
+  let weightedSum = 0;
+  let coefWithGrades = 0;
+
+  subjects.forEach((subject) => {
+    const g = gradesMap[subject.id] || {};
+    const avg = calculateAverage(
+      subject.mode,
+      g.note_dc,
+      g.note_exam,
+      g.note_tp1,
+      g.note_tp2
+    );
+    const coef = parseFloat(subject.coefficient) || 1;
+    const credit = parseFloat(subject.credit) || 0;
+
+    totalCredit += credit;
+    if (avg !== null && parseFloat(avg) >= 10) {
+      creditAcquis += credit;
+    }
+
+    if (avg !== null) {
+      weightedSum += parseFloat(avg) * coef;
+      coefWithGrades += coef;
+    }
+  });
+
+  const generalAverage = coefWithGrades > 0 ? (weightedSum / coefWithGrades).toFixed(2) : null;
+
+  return {
+    generalAverage,
+    totalCredit,
+    creditAcquis,
+    activeSubjects: subjects.length,
+  };
+};

@@ -7,7 +7,7 @@ export default function Sidebar({ className }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={`hidden lg:flex flex-col ${collapsed ? "w-20" : "w-72"} h-[calc(100vh-2rem)] items-center gap-4 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-700 shadow-xl transition-[width] duration-300 ease-in-out flex-shrink-0 ${className}`}>
+    <div className={`hidden lg:flex flex-col ${collapsed ? "w-16 lg:w-20" : "w-60 lg:w-62 2xl:w-72"} h-[calc(100vh-2rem)] items-center gap-4 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-700 shadow-xl transition-[width] duration-300 ease-in-out flex-shrink-0 ${className}`}>
       <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} p-4 relative self-stretch w-full z-[1]`}>
         <UserAvatar collapsed={collapsed} />
         <button onClick={() => setCollapsed(!collapsed)} className="inline-flex items-center justify-center p-1.5 absolute -right-3 top-5 bg-white dark:bg-zinc-900 rounded-full border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all cursor-pointer">

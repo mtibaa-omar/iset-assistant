@@ -176,6 +176,11 @@ export const dmAPI = {
     return (data || []).map((conv) => ({
       id: conv.id,
       last_message_at: conv.last_message_at,
+      last_message: conv.last_message_body || conv.last_message_kind ? {
+        body: conv.last_message_body,
+        kind: conv.last_message_kind,
+        sender_id: conv.last_message_sender_id,
+      } : null,
       unread_count: Number(conv.unread_count) || 0,
       user1: {
         id: conv.user1_id,

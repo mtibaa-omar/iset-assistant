@@ -4,7 +4,7 @@ import { useUser } from "../../features/auth/useUser";
 
 function ProtectedRoute({ children }) {
   const navigate = useNavigate();
-  const { data, isLoading, isAuthenticated } = useUser();
+  const { user, isLoading, isAuthenticated } = useUser();
 
   useEffect(
     function () {
@@ -14,7 +14,7 @@ function ProtectedRoute({ children }) {
   );
 
 
-  if (data === null) navigate("/login");
+  if (user === null) navigate("/login");
   if (isAuthenticated) return children;
 }
 

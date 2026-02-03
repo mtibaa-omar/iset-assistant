@@ -45,8 +45,8 @@ export default function SignupStep1() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-4 duration-300 animate-in fade-in slide-in-from-right">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 2xl:space-y-4">
+      <div className="space-y-3 duration-300 md:space-y-2 animate-in fade-in slide-in-from-right">
         <GoogleButton mode="signup" />
 
         <Input
@@ -119,7 +119,7 @@ export default function SignupStep1() {
         />
       </div>
 
-      <div className="pt-2">
+      <div className="pt-1.5 md:pt-2">
         <Button
           type="submit"
           variant="primary"
@@ -133,7 +133,7 @@ export default function SignupStep1() {
         </Button>
       </div>
 
-      <p className="mt-6 text-sm text-center text-slate-600 dark:text-slate-400">
+      <p className="mt-2 text-xs text-center 2xl:mt-4 md:text-sm text-slate-600 dark:text-slate-400">
         Already have an account?{" "}
         <Link
           to="/login"

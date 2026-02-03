@@ -107,8 +107,8 @@ export default function SignupStep3() {
   const isLoading = isUpdating || isLoadingDepartments;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-4 duration-300 animate-in fade-in slide-in-from-right">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 md:space-y-4">
+      <div className="space-y-3 md:space-y-4 duration-300 animate-in fade-in slide-in-from-right">
         <Select
           label="Department"
           icon={Building2}
@@ -161,7 +161,7 @@ export default function SignupStep3() {
         {isUpdating ? "Saving..." : "Complete signup"}
       </Button>
 
-      <p className="mt-6 text-sm text-center text-slate-600 dark:text-slate-400">
+      <p className="mt-4 md:mt-6 text-xs md:text-sm text-center text-slate-600 dark:text-slate-400">
         Already have an account?{" "}
         <Link
           to="/login"

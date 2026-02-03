@@ -47,7 +47,7 @@ export default function Tutorials() {
   return (
     <div className="h-full lg:pl-8" >
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-4">
             <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">
               <PlayCircle className="w-6 h-6 text-white" />
             </div>
@@ -87,7 +87,7 @@ export default function Tutorials() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
             {filteredVideos.map((video) => (
               <VideoCard key={video.id} video={video} />
             ))}

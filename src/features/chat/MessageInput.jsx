@@ -93,8 +93,8 @@ export default function MessageInput({ onSend, onSendFile, isSending, disabled, 
   return (
     <form onSubmit={handleSubmit} className="bg-white border-t dark:bg-zinc-900 border-slate-200 dark:border-zinc-700">
       {editingMessage && (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
-          <span className="text-sm text-blue-700 dark:text-blue-300">
+        <div className="flex items-center justify-between px-3 md:px-4 py-1.5 md:py-2 border-b border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+          <span className="text-xs md:text-sm text-blue-700 dark:text-blue-300">
             Modification du message...
           </span>
           <button
@@ -103,14 +103,14 @@ export default function MessageInput({ onSend, onSendFile, isSending, disabled, 
               onCancelEdit();
               setMessage("");
             }}
-            className="p-1 transition-colors rounded-full hover:bg-blue-200 dark:hover:bg-blue-800"
+            className="p-0.5 md:p-1 transition-colors rounded-full hover:bg-blue-200 dark:hover:bg-blue-800"
           >
-            <X className="w-4 h-4 text-blue-700 dark:text-blue-300" />
+            <X className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-700 dark:text-blue-300" />
           </button>
         </div>
       )}
 
-      <div className="flex items-center gap-2 p-3">
+      <div className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3">
         {!editingMessage && (
           <InputFileButton
             onFileSelect={selectFile}
@@ -144,7 +144,7 @@ export default function MessageInput({ onSend, onSendFile, isSending, disabled, 
       </div>
 
       {error && (
-        <p className="px-5 pb-2 text-xs text-red-500">{error}</p>
+        <p className="px-3 md:px-5 pb-1.5 md:pb-2 text-[10px] md:text-xs text-red-500">{error}</p>
       )}
     </form>
   );

@@ -9,6 +9,7 @@ import Select from "../ui/components/Select";
 import Button from "../ui/components/Button";
 import { useDarkMode } from "../context/DarkModeContext";
 import Spinner from "../ui/components/Spinner";
+import { IoMdSchool } from "react-icons/io";
 
 const SEMESTERS = [
   { value: "S1", label: "Semestre 1" },
@@ -119,17 +120,15 @@ export default function EspaceMatiere() {
   }
 
   return (
-    <div className="px-4 pb-4 md:px-6 md:pb-6 pt-0 space-y-6 flex flex-col h-full overflow-hidden">
+    <div className="h-full md:pl-4 lg:pl-8 pb-4 md:pb-6 pt-0 space-y-6 flex flex-col overflow-hidden">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Espace Matières
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Consultez vos matières et gérez vos discussions
-            </p>
+        <div className="flex items-center gap-4 mb-2">
+          <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">
+            <IoMdSchool className="w-6 h-6 text-white" />
           </div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            Espace Matières
+          </h1>
         </div>
 
         <div className="flex items-center justify-end gap-3">

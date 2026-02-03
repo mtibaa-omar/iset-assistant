@@ -12,7 +12,7 @@ export default function UserAvatar({ collapsed }) {
 
   return (
     <div 
-      className={`flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg py-2 ${collapsed ? "justify-center w-full -mb-6" : "w-full -mb-6 "}`}
+      className={`flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg py-2 ${collapsed ? "justify-center w-full -mb-6" : "w-full lg:-mb-6 -mb-2"}`}
       onClick={handleClick}
       role="button"
       tabIndex={0}

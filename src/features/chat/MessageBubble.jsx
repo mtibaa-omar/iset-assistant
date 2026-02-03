@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import MessageAvatar from "./MessageAvatar";
 import MessageContent from "./MessageContent";
 import MessageMenu from "./MessageMenu";
+import { formatTime } from "../../utils/dateUtils";
 
 export default function MessageBubble({ message, onDelete, onEdit, isEditing }) {
   const { user } = useUser();
@@ -11,10 +12,7 @@ export default function MessageBubble({ message, onDelete, onEdit, isEditing }) 
   const avatarUrl = message.sender?.avatar_url || "/image.png";
   const username = senderName.toLowerCase().replace(/\s+/g, "_");
 
-  const time = new Date(message.created_at).toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const time = formatTime(message.created_at);
 
   const isModified = message.edited_at && !message.deleted_at;
   const isDeleted = !!message.deleted_at;

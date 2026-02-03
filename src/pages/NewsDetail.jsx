@@ -7,6 +7,7 @@ import Spinner from "../ui/components/Spinner";
 import Button from "../ui/components/Button";
 import { motion } from "framer-motion";
 import { CATEGORY_COLORS_GRADIENT } from "../styles/newsConstants";
+import { formatFullDate } from "../utils/dateUtils";
 export default function NewsDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -72,15 +73,11 @@ export default function NewsDetail() {
     );
   }
 
-  const date = news.published_at ? new Date(news.published_at).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }) : "";
+  const date = formatFullDate(news.published_at);
 
   return (
     <div className="relative min-h-screen">
-      <div className="absolute z-50 flex items-center justify-between pointer-events-none top-6 left-6 right-6">
+      <div className="absolute flex items-center justify-between pointer-events-none z-2 top-6 left-6 right-6">
         <button 
           onClick={() => navigate("/actualites")}
           className="p-3 text-white transition-all border shadow-xl pointer-events-auto bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl hover:scale-105 active:scale-95 border-white/20"

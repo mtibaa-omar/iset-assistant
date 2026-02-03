@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, ArrowUpRight, Eye } from "lucide-react";
 import { CATEGORY_COLORS_GRADIENT } from "../../styles/newsConstants";
+import { formatFullDate } from "../../utils/dateUtils";
 
 export default function NewsCard({
   id,
@@ -24,11 +25,7 @@ export default function NewsCard({
   
   const excerpt = content ? content.substring(0, 120) + (content.length > 120 ? "..." : "") : "";
   
-  const date = published_at ? new Date(published_at).toLocaleDateString('fr-FR', { 
-    day: 'numeric', 
-    month: 'long', 
-    year: 'numeric' 
-  }) : "";
+  const date = formatFullDate(published_at);
   
   const author = author_name || "ISET";
 

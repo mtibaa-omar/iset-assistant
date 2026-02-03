@@ -107,7 +107,6 @@ export function useSendDM() {
 // Hook to get all conversations for current user (with unread counts)
 export function useConversations() {
   const { user } = useUser();
-  const queryClient = useQueryClient();
 
   const { data: conversations, isLoading, refetch } = useQuery({
     queryKey: dmKeys.conversations(user?.id),
@@ -132,8 +131,7 @@ export function useConversations() {
         },
         (payload) => {
           console.log("[DM] New message detected:", payload);
-          // Refetch conversations to update unread counts
-          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
+          refetch();
         }
       )
       .on(
@@ -142,10 +140,11 @@ export function useConversations() {
           event: "UPDATE",
           schema: "public",
           table: "dm_read_state",
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
           console.log("[DM] Read state changed:", payload);
-          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
+          refetch();
         }
       )
       .subscribe((status, err) => {
@@ -158,9 +157,9 @@ export function useConversations() {
 
     return () => {
       console.log("[DM] Cleaning up subscription");
-      messagesChannel.unsubscribe();
+      supabase.removeChannel(messagesChannel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, refetch]);
 
   return { conversations: conversations || [], isLoading, refetch };
 }

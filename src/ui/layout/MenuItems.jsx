@@ -8,6 +8,7 @@ import {
   Layers,
   BookOpen,
   Video,
+  Mail,
 } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
 import { useUser } from "../../features/auth/useUser";
@@ -58,6 +59,13 @@ export default function MenuItems({ collapsed, onNavigate }) {
         icon={<MonitorPlayIcon />}
         label="Tutoriels"
         to="/tutoriels"
+        onNavigate={onNavigate}
+        collapsed={collapsed}
+      />
+      <SidebarItem
+        icon={<Mail />}
+        label="Messages"
+        to="/messages"
         onNavigate={onNavigate}
         collapsed={collapsed}
       />
