@@ -1,25 +1,40 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { useConversations } from "../features/dm/useDM";
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useConversations, useUserByUsername } from "../features/dm/useDM";
 import { useUser } from "../features/auth/useUser";
 import ConversationsSidebar from "../features/inbox/ConversationsSidebar";
 import ConversationView from "../features/inbox/ConversationView";
 import EmptyState from "../features/inbox/EmptyState";
 import { useInboxConversation } from "../features/inbox/useInbox";
 import Confirm from "../ui/components/Confirm";
+import Spinner from "../ui/components/Spinner";
+import Button from "../ui/components/Button";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function Inbox() {
-  const { conversationId: urlConversationId } = useParams();
+  const { username } = useParams();
+  const navigate = useNavigate();
   const { user } = useUser();
   const { conversations, isLoading: isLoadingConversations } = useConversations();
-  const [selectedConversation, setSelectedConversation] = useState(null);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [manuallySelectedConversation, setManuallySelectedConversation] = useState(null);
+  const { targetUser: userByUsername, isLoading: isLoadingUser, error: userError } = useUserByUsername(username);
+
+  const conversationFromUrl = username && conversations.length > 0 && userByUsername
+    ? conversations.find(c => {
+        const otherUser = c.user1.id === user?.id ? c.user2 : c.user1;
+        return otherUser.id === userByUsername.id;
+      })
+    : null;
+
+  const selectedConversation = username ? conversationFromUrl : manuallySelectedConversation;
+  
+  const showSidebar = !username && !manuallySelectedConversation;
 
   const targetUser = selectedConversation && user
     ? selectedConversation.user1.id === user.id
       ? selectedConversation.user2
       : selectedConversation.user1
-    : null;
+    : userByUsername;
 
   const {
     conversationId,
@@ -38,28 +53,43 @@ export default function Inbox() {
     cancelDelete,
   } = useInboxConversation(targetUser, selectedConversation?.id);
 
-  useEffect(() => {
-    if (urlConversationId && conversations.length > 0) {
-      const conv = conversations.find(c => c.id === urlConversationId);
-      if (conv) {
-        setSelectedConversation(conv);
-        setShowSidebar(false);
-      }
-    }
-  }, [urlConversationId, conversations]);
-
   const handleSelectConversation = (conv) => {
-    setSelectedConversation(conv);
-    setShowSidebar(false);
+    setManuallySelectedConversation(conv);
   };
 
   const handleBack = () => {
-    setShowSidebar(true);
-    setSelectedConversation(null);
+    setManuallySelectedConversation(null);
   };
 
+  if (username && isLoadingUser) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (username && (userError || !userByUsername)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-4 text-center">
+        <div className="flex items-center justify-center w-16 h-16 mb-4 bg-red-100 rounded-full dark:bg-red-900/30">
+          <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+        </div>
+        <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
+          Utilisateur introuvable
+        </h3>
+        <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
+          L'utilisateur @{username} n'existe pas.
+        </p>
+        <Button variant="secondary" icon={ArrowLeft} onClick={() => navigate("/messages")}>
+          Retour aux messages
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-[calc(100vh-2.1rem)] -m-4 md:-m-6 overflow-hidden">
+    <div className="flex h-full overflow-hidden md:flex-row">
       <div className={`${showSidebar ? 'block' : 'hidden'} md:block w-full md:w-72 2xl:w-80 flex-shrink-0 transition-[width] duration-300`}>
         <ConversationsSidebar
           conversations={conversations}
@@ -70,7 +100,7 @@ export default function Inbox() {
         />
       </div>
 
-      <div className={`${!showSidebar ? 'block' : 'hidden'} md:block flex-1`}>
+      <div className={`${!showSidebar ? 'fixed inset-0 z-[60] bg-white dark:bg-zinc-900 md:relative md:z-auto' : 'hidden'} md:block md:flex-1`}>
         {selectedConversation && targetUser ? (
           <ConversationView
             targetUser={targetUser}

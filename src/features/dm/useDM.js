@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../services/supabase";
 import { dmAPI } from "../../services/api/apiDM";
 import { dmKeys } from "./dmKeys";
@@ -70,7 +70,11 @@ export function useDMConversation(targetUserId) {
     });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel).catch(() => {
+          // Ignore errors on cleanup
+        });
+      }
     };
   }, [conversationId, queryClient]);
 
@@ -107,8 +111,10 @@ export function useSendDM() {
 // Hook to get all conversations for current user (with unread counts)
 export function useConversations() {
   const { user } = useUser();
+  const queryClient = useQueryClient();
+  const channelRef = useRef(null);
 
-  const { data: conversations, isLoading, refetch } = useQuery({
+  const { data: conversations, isLoading } = useQuery({
     queryKey: dmKeys.conversations(user?.id),
     queryFn: () => dmAPI.getConversations(),
     enabled: !!user?.id,
@@ -117,10 +123,13 @@ export function useConversations() {
   useEffect(() => {
     if (!user?.id) return;
 
-    console.log("[DM] Setting up real-time subscription for user:", user.id);
+    if (channelRef.current) {
+      return;
+    }
 
-    const channelName = `dm-conversations-${user.id}-${Date.now()}`;
-    const messagesChannel = supabase
+    const channelName = `dm-conversations-${user.id}`;
+    
+    channelRef.current = supabase
       .channel(channelName)
       .on(
         "postgres_changes",
@@ -129,9 +138,8 @@ export function useConversations() {
           schema: "public",
           table: "dm_messages",
         },
-        (payload) => {
-          console.log("[DM] New message detected:", payload);
-          refetch();
+        () => {
+          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
         }
       )
       .on(
@@ -142,26 +150,21 @@ export function useConversations() {
           table: "dm_read_state",
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
-          console.log("[DM] Read state changed:", payload);
-          refetch();
+        () => {
+          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
         }
       )
-      .subscribe((status, err) => {
-        if (err) {
-          console.error("[DM] Subscription error:", err);
-        } else {
-          console.log("[DM] Subscription status:", status);
-        }
-      });
+      .subscribe();
 
     return () => {
-      console.log("[DM] Cleaning up subscription");
-      supabase.removeChannel(messagesChannel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current).catch(() => {});
+        channelRef.current = null;
+      }
     };
-  }, [user?.id, refetch]);
+  }, [user?.id, queryClient]);
 
-  return { conversations: conversations || [], isLoading, refetch };
+  return { conversations: conversations || [], isLoading };
 }
 
 // Hook to mark a conversation as read

@@ -27,10 +27,12 @@ import AdminVideos from "./pages/AdminVideos";
 
 import EspaceMatiere from "./pages/EspaceMatiere";
 import ChatPage from "./pages/ChatPage";
-import DMPage from "./pages/DMPage";
 import Tutorials from "./pages/Tutorials";
 import Outils from "./pages/Outils";
 import Inbox from "./pages/Inbox";
+import ForgotPassword from "./pages/ForgotPassword";
+import UpdatePassword from "./pages/UpdatePassword";
+import PageNotFound from "./pages/PageNotFound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,11 +66,11 @@ export default function App() {
               <Route path="actualites/:id" element={<NewsDetail />} />
               <Route path="matieres" element={<EspaceMatiere />} />
               <Route path="chat/:subjectId" element={<ChatPage />} />
-              <Route path="messages/:username" element={<DMPage />} />
               <Route path="moyenne" element={<Calcul />} />
               <Route path="outils" element={<Outils />} />
               <Route path="tutoriels" element={<Tutorials />} />
               <Route path="messages" element={<Inbox />} />
+              <Route path="messages/:username" element={<Inbox />} />
               <Route path="admin/news" element={<AdminRoute><Admin /></AdminRoute>} />
               <Route path="admin/subjects" element={<AdminRoute><AdminSubjects /></AdminRoute>} />
               <Route path="admin/unites" element={<AdminRoute><AdminUnites /></AdminRoute>} />
@@ -84,6 +86,9 @@ export default function App() {
             </Route>
             <Route path="auth/callback" element={<SignupProvider><AuthCallback /></SignupProvider>} />
               <Route path="login" element={<LoginPage />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="update-password" element={<UpdatePassword />} />
+             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

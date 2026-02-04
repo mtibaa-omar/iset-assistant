@@ -17,7 +17,7 @@ export default function Home() {
   const { subjects } = useSubjectsByProgram(user?.specialty_id, user?.level_id);
   const { academicYear } = useCurrentAcademicYear();
   const { news, isLoading: newsLoading } = useNews();
-  const { conversations, isLoading: conversationsLoading } = useConversations();
+  const { conversations } = useConversations();
   const programSubjectIds = useMemo(() => subjects.map((s) => s.id), [subjects]);
   const { grades } = useStudentGrades(user?.id, programSubjectIds, academicYear?.id);
 
@@ -78,7 +78,7 @@ export default function Home() {
   const firstName = userName.split(" ")[0];
 
   return (
-    <div className="min-h-full md:pl-4 lg:pl-8 pt-0 pb-4 space-y-6 md:px-6 md:pb-6 md:space-y-8">
+    <div className="px-4 pt-0 pb-4 space-y-6 overflow-y-auto md:px-4 lg:px-8 md:pb-6 md:space-y-8">
       <div className="mb-6 md:mb-8">
         <h1 className="mb-1 text-2xl font-bold md:text-3xl lg:text-4xl text-slate-900 dark:text-white md:mb-2">
           {getGreeting()}, {firstName}! 👋
@@ -149,60 +149,83 @@ export default function Home() {
         </div>
 
         <div className="lg:col-span-1">
-          {unreadMessages.length > 0 && (
-            <div className="h-full p-6 md:p-8 2xl:p-10 transition-all border shadow-sm bg-slate-50/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
-              <div className="flex items-center justify-between mb-8 md:mb-10">
-                <h2 className="text-sm md:text-md 2xl:text-2xl font-bold text-slate-900 dark:text-white">
-                  Messages non lus
-                </h2>
+          <div className="h-full p-6 transition-all border shadow-sm md:p-8 2xl:p-10 bg-slate-50/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
+            <div className="flex items-center justify-between mb-8 md:mb-10">
+              <h2 className="text-sm font-bold md:text-md 2xl:text-2xl text-slate-900 dark:text-white">
+                Messages non lus
+              </h2>
+              {unreadMessages.length > 0 && (
                 <span className="px-3 py-1 text-[10px] font-bold text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 rounded-full">
                   {unreadMessages.length} nouveau{unreadMessages.length > 1 ? "x" : ""}
                 </span>
-              </div>
-              
-              <div className="space-y-6">
-                {unreadMessages.map((convo) => (
-                  <Link
-                    key={convo.id}
-                    to={`/messages/${convo.username}`}
-                    className="flex items-center gap-4 group"
-                  >
-                    <div className="relative flex-shrink-0">
-                      <img
-                        src={convo.avatar_url || "/image.png"}
-                        alt={convo.full_name}
-                        className="object-cover w-12 h-12 rounded-full ring-2 ring-white dark:ring-zinc-800 shadow-sm"
-                      />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-zinc-800 rounded-full" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <p className="text-sm font-bold truncate text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                          {convo.full_name}
-                        </p>
-                        <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500">
-                          {formatSmartTime(convo.last_message_at)}
-                        </span>
+              )}
+            </div>
+            
+            {unreadMessages.length > 0 ? (
+              <>
+                <div className="space-y-6">
+                  {unreadMessages.map((convo) => (
+                    <Link
+                      key={convo.id}
+                      to={`/messages/${convo.username}`}
+                      className="flex items-center gap-4 group"
+                    >
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={convo.avatar_url || "/image.png"}
+                          alt={convo.full_name}
+                          className="object-cover w-12 h-12 rounded-full shadow-sm ring-2 ring-white dark:ring-zinc-800"
+                        />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full dark:border-zinc-800" />
                       </div>
-                      <p className="text-xs truncate text-slate-500 dark:text-zinc-400">
-                        {convo.last_message || "Nouveau message"}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <p className="text-sm font-bold truncate transition-colors text-slate-900 dark:text-white group-hover:text-purple-600">
+                            {convo.full_name}
+                          </p>
+                          <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500">
+                            {formatSmartTime(convo.last_message_at)}
+                          </span>
+                        </div>
+                        <p className="text-xs truncate text-slate-500 dark:text-zinc-400">
+                          {convo.last_message?.body || "Nouveau message"}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
 
-              <div className="mt-8 border-t border-slate-200 dark:border-zinc-800">
+                <div className="mt-8 border-t border-slate-200 dark:border-zinc-800">
+                  <Link
+                    to="/messages"
+                    className="flex items-center justify-center w-full py-4 text-sm font-semibold transition-colors md:text-base text-slate-600 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400"
+                  >
+                    Voir tous les messages
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-slate-200/50 dark:bg-zinc-800/50">
+                  <BookOpen className="w-8 h-8 text-slate-400 dark:text-zinc-500" />
+                </div>
+                <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-zinc-300">
+                  Aucun message non lu
+                </p>
+                <p className="mb-6 text-xs text-center text-slate-500 dark:text-zinc-400">
+                  Vous êtes à jour avec vos conversations
+                </p>
                 <Link
                   to="/messages"
-                  className="flex items-center justify-center w-full py-4 text-sm md:text-base font-semibold transition-colors text-slate-600 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all rounded-full text-slate-700 dark:text-zinc-300 bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700"
                 >
-                  Voir tous les messages
+                  Voir les messages
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

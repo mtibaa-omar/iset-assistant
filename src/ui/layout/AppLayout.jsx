@@ -22,20 +22,27 @@ export default function AppLayout() {
         />
         <Sidebar />
 
-        <div className="fixed z-20 top-6 right-6 md:top-8 md:right-8">
+        <div className="fixed z-20 hidden md:block top-8 right-10">
           <HeaderMenu />
         </div>
 
-        <main className="relative flex-1 p-4 md:p-6 overflow-auto bg-white dark:bg-zinc-900 md:rounded-2xl md:border md:border-slate-200 md:dark:border-slate-700 md:shadow-xl">
-          <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 mb-4 transition-all border rounded-xl bg-slate-100 dark:bg-zinc-900 border-slate-200 dark:border-slate-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 lg:hidden"
-            aria-label="Open menu"
-          >
-            <Menu className="w-5 h-5 text-slate-700 dark:text-white" />
-          </button>
+        <main className="relative flex flex-col flex-1 overflow-hidden bg-white dark:bg-zinc-900 md:rounded-2xl md:border md:border-slate-200 md:dark:border-slate-700 md:shadow-xl">
+          <div className={`px-4 py-3 shrink-0 flex items-center justify-between relative lg:hidden ${isMobileMenuOpen ? 'z-[25]' : 'z-[40]'}`}>
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 transition-all border shadow-sm rounded-xl bg-slate-50/50 dark:bg-zinc-900/50 border-slate-200/60 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-zinc-800 lg:hidden"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5 text-slate-600 dark:text-zinc-400" />
+            </button>
+            <div className="relative md:hidden">
+              <HeaderMenu />
+            </div>
+          </div>
 
-          <Outlet />
+          <div className="relative flex flex-col flex-1 min-h-0">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

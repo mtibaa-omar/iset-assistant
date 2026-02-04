@@ -55,7 +55,7 @@ export default function MessageBubble({ message, onDelete, onEdit, isEditing }) 
               isDeleted
                 ? "bg-slate-50 dark:bg-zinc-800/20 border border-dashed border-slate-200 dark:border-zinc-700 rounded-lg"
                 : isOwn
-                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-md"
+                ? "bg-purple-600 text-white rounded-br-md"
                 : "bg-white dark:bg-zinc-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-zinc-700 rounded-bl-md"
             }`}
           >

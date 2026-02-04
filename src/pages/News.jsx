@@ -15,7 +15,7 @@ export default function News() {
     );
   }
   return (
-    <div className="min-h-full md:pl-4 lg:pl-8">
+    <div className="flex-1 px-4 space-y-6 overflow-y-auto lg:px-8">
       <div className="pr-16 mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">
@@ -32,13 +32,13 @@ export default function News() {
         </div>
       </div>
       <div className="flex justify-end mb-6">
-        <div className="flex items-center gap-1 p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
+        <div className="flex items-center gap-1 p-1 border shadow-sm bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm border-slate-200 dark:border-zinc-800 rounded-xl">
           <button
             onClick={() => setViewMode("grid")}
             className={`p-2 rounded-lg transition-all ${
               viewMode === "grid"
                 ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-500/30"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800/50"
             }`}
           >
             <Grid3X3 className="w-4 h-4" />
@@ -48,7 +48,7 @@ export default function News() {
             className={`p-2 rounded-lg transition-all ${
               viewMode === "list"
                 ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-500/30"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800/50"
             }`}
           >
             <List className="w-4 h-4" />

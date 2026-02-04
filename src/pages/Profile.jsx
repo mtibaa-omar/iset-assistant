@@ -1,19 +1,47 @@
 import { useState, useEffect, useRef } from "react";
-import { Upload, Trash2, Mail, Lock, User, Camera, Check } from "lucide-react";
+import { Upload, Trash2, Mail, Lock, User, Camera, Check, Save } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { useUser } from "../features/auth/useUser";
 import { useUpdateUser } from "../features/auth/useUpdateUser";
 import Button from "../ui/components/Button";
 import Input from "../ui/components/Input";
 import Spinner from "../ui/components/Spinner";
+import Modal from "../ui/components/Modal";
 
 export default function Profile() {
   const { user, isLoading: userLoading } = useUser();
   const { isUpdating, updateUser } = useUpdateUser();
   
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+    },
+  });
+  
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    watch,
+    reset: resetPasswordForm,
+    formState: { errors: passwordErrors },
+  } = useForm({
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
   
   const fileInputRef = useRef();
 
@@ -21,11 +49,11 @@ export default function Profile() {
     if (user) {
       const fullName = user.user_metadata?.full_name || "";
       const names = fullName.split(" ");
-      setFirstName(names[0] || "");
-      setLastName(names.slice(1).join(" ") || "");
+      setValue("firstName", names[0] || "");
+      setValue("lastName", names.slice(1).join(" ") || "");
       setAvatarPreview(user.user_metadata?.avatar_url || "/image.png");
     }
-  }, [user]);
+  }, [user, setValue]);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -44,14 +72,26 @@ export default function Profile() {
     setAvatarPreview("/image.png");
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const fullName = `${firstName} ${lastName}`.trim();
+  const handleProfileSubmit = (data) => {
+    const fullName = `${data.firstName} ${data.lastName}`.trim();
     
     updateUser({
       fullName,
       avatar: avatarFile
     });
+  };
+
+  const handlePasswordChange = (data) => {
+    updateUser(
+      { password: data.newPassword },
+      {
+        onSuccess: () => {
+          toast.success("Mot de passe mis à jour avec succès !");
+          setShowPasswordModal(false);
+          resetPasswordForm();
+        },
+      }
+    );
   };
 
   if (userLoading) return (
@@ -61,7 +101,8 @@ export default function Profile() {
   );
 
   return (
-    <div className="max-w-xl md:max-w-lg lg:max-w-4xl 2xl:max-w-full px-2 py-4 sm:px-6 2xl:px-24 2xl:py-2">
+    <>
+    <div className="max-w-xl md:max-w-lg lg:max-w-4xl 2xl:max-w-full px-6 sm:px-6 2xl:px-24 2xl:py-2">
       <div className="mb-4 md:mb-5">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl md:text-3xl 2xl:text-5xl">
           Profil
@@ -131,7 +172,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 md:space-y-6">
+        <form onSubmit={handleSubmit(handleProfileSubmit)} className="space-y-6 md:space-y-6">
           <div className="space-y-6 md:space-y-4 p-6 md:px-4 md:py-4 2xl:p-8 transition-all border shadow-sm bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl 2xl:text-3xl">
               Compte
@@ -141,20 +182,24 @@ export default function Profile() {
               <Input
                 label="Prénom"
                 id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Ex: Alexandre"
+                placeholder="Omar"
                 icon={User}
                 inputClassName="md:py-2"
+                error={errors.firstName?.message}
+                {...register("firstName", {
+                  required: "Le prénom est requis",
+                })}
               />
               <Input
                 label="Nom"
                 id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Ex: Dubois"
+                placeholder="Mtibaa"
                 icon={User}
                 inputClassName="md:py-2"
+                error={errors.lastName?.message}
+                {...register("lastName", {
+                  required: "Le nom est requis",
+                })}
               />
             </div>
 
@@ -182,6 +227,7 @@ export default function Profile() {
               <div className="flex justify-end">
                 <button 
                   type="button"
+                  onClick={() => setShowPasswordModal(true)}
                   className="text-xs font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400 md:text-sm"
                 >
                   Changer le mot de passe ?
@@ -204,5 +250,74 @@ export default function Profile() {
         </form>
       </div>
     </div>
+
+    <Modal
+      isOpen={showPasswordModal}
+      onClose={() => {
+        setShowPasswordModal(false);
+        resetPasswordForm();
+      }}
+      title="Changer le mot de passe"
+      maxWidth="max-w-md"
+    >
+      <form onSubmit={handlePasswordSubmit(handlePasswordChange)} className="p-6 space-y-4">
+        <Input
+          id="newPassword"
+          type="password"
+          label="Nouveau mot de passe"
+          placeholder="••••••••"
+          icon={Lock}
+          error={passwordErrors.newPassword?.message}
+          disabled={isUpdating}
+          {...registerPassword("newPassword", {
+            required: "Le nouveau mot de passe est requis",
+            minLength: {
+              value: 8,
+              message: "Au moins 8 caractères",
+            },
+          })}
+        />
+
+        <Input
+          id="confirmPassword"
+          type="password"
+          label="Confirmer le nouveau mot de passe"
+          placeholder="••••••••"
+          icon={Lock}
+          error={passwordErrors.confirmPassword?.message}
+          disabled={isUpdating}
+          {...registerPassword("confirmPassword", {
+            required: "Veuillez confirmer votre mot de passe",
+            validate: (value) =>
+              value === watch("newPassword") || "Les mots de passe ne correspondent pas",
+          })}
+        />
+
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setShowPasswordModal(false);
+              resetPasswordForm();
+            }}
+            className="flex-1"
+          >
+            Annuler
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            icon={Save}
+            isLoading={isUpdating}
+            loadingText="Mise à jour..."
+            className="flex-1"
+          >
+            Enregistrer
+          </Button>
+        </div>
+      </form>
+    </Modal>
+    </>
   );
 }

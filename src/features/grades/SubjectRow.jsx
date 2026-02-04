@@ -2,7 +2,7 @@ import { useState } from "react";
 import { calculateAverage, validateGrade } from "../../utils/gradeCalculations";
 
 const InputField = ({ label, value, error, onChange }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center">
     <span className="w-10 text-xs font-medium text-slate-600 dark:text-zinc-400 sm:w-11">{label}</span>
     <div className="relative group">
       <input
@@ -65,7 +65,7 @@ export default function SubjectRow({ subject, grades, onGradeChange }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto flex-nowrap sm:gap-3 sm:overflow-visible no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto flex-nowrap sm:gap-3 pb-1 sm:pb-0 sm:overflow-visible">
           {subject.mode === "cours" ? (
             <>
               <InputField 

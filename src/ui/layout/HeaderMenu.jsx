@@ -8,6 +8,7 @@ import { useConversations } from "../../features/dm/useDM";
 import { useUnreadNews } from "../../features/news/useNewsNotifications";
 import { useRecentVideos } from "../../features/videos/useVideoNotifications";
 import { useUser } from "../../features/auth/useUser";
+import MobileMenu from "./MobileMenu";
 
 export default function HeaderMenu() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
@@ -54,69 +55,6 @@ export default function HeaderMenu() {
     hover:border-red-400 dark:hover:border-red-500/50
     hover:shadow-md hover:scale-105
   `;
-
-  const MobileMenu = () => (
-    <div className="absolute right-0 mt-2 overflow-hidden border shadow-xl z-50w-56 rounded-xl top-full backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-zinc-700">
-      <div className="p-2 space-y-1">
-        <button
-          onClick={() => {
-            toggleDarkMode();
-            setIsMobileMenuOpen(false);
-          }}
-          className="flex items-center w-full gap-3 px-3 py-2 text-sm transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-white"
-        >
-          {isDarkMode ? (
-            <>
-              <Sun className="size-4" />
-              <span>Mode clair</span>
-            </>
-          ) : (
-            <>
-              <Moon className="size-4" />
-              <span>Mode sombre</span>
-            </>
-          )}
-        </button>
-
-        <Link
-          to="/account"
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="flex items-center w-full gap-3 px-3 py-2 text-sm transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-white"
-        >
-          <User className="size-4" />
-          <span>Mon compte</span>
-        </Link>
-
-        <button
-          onClick={() => {
-            setIsNotificationOpen(!isNotificationOpen);
-            setIsMobileMenuOpen(false);
-          }}
-          className="relative flex items-center w-full gap-3 px-3 py-2 text-sm transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-white"
-        >
-          <Bell className="size-4" />
-          <span>Notifications</span>
-          {totalUnread > 0 && (
-            <span className="w-2 h-2 ml-auto bg-red-500 rounded-full"></span>
-          )}
-        </button>
-
-        <div className="my-1 border-t border-slate-200 dark:border-zinc-700"></div>
-
-        <button
-          onClick={() => {
-            logout();
-            setIsMobileMenuOpen(false);
-          }}
-          disabled={isLoading}
-          className="flex items-center w-full gap-3 px-3 py-2 text-sm text-red-600 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 dark:text-red-400"
-        >
-          <LogOut className="size-4" />
-          <span>Déconnexion</span>
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -169,16 +107,26 @@ export default function HeaderMenu() {
           className="relative transition-all duration-200 rounded-full cursor-pointer"
         >
           <img 
-            className="object-cover w-8 h-8 border-2 rounded-full border-white/60 dark:border-zinc-800" 
+            className="object-cover border rounded-full shadow-sm w-9 h-9 border-slate-200 dark:border-white/10" 
             alt={user?.user_metadata?.full_name || "User"} 
             src={user?.user_metadata?.avatar || user?.user_metadata?.avatar_url || "/image.png"} 
           />
           {totalUnread > 0 && (
-            <span className="absolute w-2.5 h-2.5 bg-red-500 rounded-full -top-0.5 -right-0.5 ring-1 ring-white dark:ring-zinc-900"></span>
+            <span className="absolute w-2.5 h-2.5 bg-red-500 rounded-full top-0 right-0 ring-2 ring-white dark:ring-zinc-900 shadow-sm"></span>
           )}
         </button>
 
-        {isMobileMenuOpen && <MobileMenu />}
+        {isMobileMenuOpen && (
+          <MobileMenu
+            isDarkMode={isDarkMode}
+            toggleDarkMode={toggleDarkMode}
+            totalUnread={totalUnread}
+            onNotificationToggle={() => setIsNotificationOpen(!isNotificationOpen)}
+            onLogout={logout}
+            isLoading={isLoading}
+            onClose={() => setIsMobileMenuOpen(false)}
+          />
+        )}
 
         <NotificationPanel
           isOpen={isNotificationOpen}

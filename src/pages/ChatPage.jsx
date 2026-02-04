@@ -81,10 +81,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100%+2rem)] md:h-[calc(100%+3rem)] -m-4 overflow-hidden md:-m-6 bg-gradient-to-b from-slate-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+    <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-slate-50 to-white dark:from-zinc-900 dark:to-zinc-950">
       <ChatHeader subject={subject} isLoading={isLoadingSubject} />
 
-      <div className="flex-1 py-4 overflow-y-auto">
+      <div className="flex-1 min-h-0 py-4 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-4 text-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-purple-100 rounded-full dark:bg-purple-900/30">
@@ -113,15 +113,17 @@ export default function ChatPage() {
         )}
       </div>
 
-      <MessageInput
-        onSend={handleSendMessage}
-        onSendFile={handleSendFile}
-        isSending={isSending}
-        disabled={!subjectId}
-        editingMessage={editingMessage}
-        onCancelEdit={handleCancelEdit}
-        onSaveEdit={handleSaveEdit}
-      />
+      <div className="shrink-0 pb-4 md:pb-6 px-4 md:px-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-slate-200 dark:border-white/10">
+        <MessageInput
+          onSend={handleSendMessage}
+          onSendFile={handleSendFile}
+          isSending={isSending}
+          disabled={!subjectId}
+          editingMessage={editingMessage}
+          onCancelEdit={handleCancelEdit}
+          onSaveEdit={handleSaveEdit}
+        />
+      </div>
 
       <Confirm
         isOpen={!!messageToDelete}

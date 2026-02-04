@@ -2,7 +2,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 .Toastify__toast-container {
-  @apply !p-4 !w-full sm:!w-[400px];
+  @apply !w-full sm:!w-[400px];
 }
 
 .Toastify__toast {
@@ -22,10 +22,8 @@
 }
 
 @media (max-width: 640px) {
-  .Toastify__toast-container--top-right,
-  .Toastify__toast-container--top-left,
-  .Toastify__toast-container--top-center {
-    @apply !top-0 !left-0 !right-0;
+  .Toastify__toast-container {
+    @apply !bottom-10 !top-auto !left-4 !right-4 !max-w-none !w-auto;
   }
 
   .Toastify__toast {

@@ -13,7 +13,7 @@ export default function ConversationsSidebar({ conversations, activeConversation
 
   return (
     <div className="flex flex-col h-full bg-white border-r dark:bg-zinc-900 border-slate-200 dark:border-white/10">
-      <div className="p-4 border-b border-slate-200 dark:border-white/10">
+      <div className="p-4 border-b shrink-0 border-slate-200 dark:border-white/10">
         <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Messages</h1>
 
         <div className="relative">

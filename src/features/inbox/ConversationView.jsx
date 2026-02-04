@@ -4,6 +4,7 @@ import MessageBubble from "../chat/MessageBubble";
 import MessageInput from "../chat/MessageInput";
 import Button from "../../ui/components/Button";
 import Spinner from "../../ui/components/Spinner";
+import { useMoveBack } from "../../hooks/useMoveBack";
 
 export default function ConversationView({ 
   targetUser, 
@@ -18,10 +19,9 @@ export default function ConversationView({
   editingMessage, 
   onCancelEdit, 
   onSaveEdit, 
-  onBack 
 }) {
   const messagesEndRef = useRef(null);
-
+  const moveBack = useMoveBack();
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -33,7 +33,7 @@ export default function ConversationView({
           variant="ghost"
           size="sm"
           icon={ArrowLeft}
-          onClick={onBack}
+          onClick={moveBack}
           className="!p-2 md:hidden"
         />
 

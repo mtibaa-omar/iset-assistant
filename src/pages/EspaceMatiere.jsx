@@ -120,7 +120,7 @@ export default function EspaceMatiere() {
   }
 
   return (
-    <div className="h-full md:pl-4 lg:pl-8 pb-4 md:pb-6 pt-0 space-y-6 flex flex-col overflow-hidden">
+    <div className="flex flex-col flex-1 min-h-0 px-4 pt-0 pb-4 space-y-6 overflow-hidden md:px-6 lg:px-10 md:pb-6">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">
@@ -144,7 +144,7 @@ export default function EspaceMatiere() {
             />
           </div>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-white/10" />
+          <div className="w-px h-6 bg-slate-200 dark:bg-white/10" />
 
           <Button
             variant="secondary"
