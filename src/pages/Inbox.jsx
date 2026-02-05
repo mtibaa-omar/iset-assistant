@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useConversations, useUserByUsername } from "../features/dm/useDM";
 import { useUser } from "../features/auth/useUser";
+import { useOnlinePresence } from "../features/dm/useOnlinePresence";
 import ConversationsSidebar from "../features/inbox/ConversationsSidebar";
 import ConversationView from "../features/inbox/ConversationView";
 import EmptyState from "../features/inbox/EmptyState";
@@ -15,6 +16,7 @@ export default function Inbox() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
+  const { isOnline } = useOnlinePresence();
   const { conversations, isLoading: isLoadingConversations } = useConversations();
   const [manuallySelectedConversation, setManuallySelectedConversation] = useState(null);
   const { targetUser: userByUsername, isLoading: isLoadingUser, error: userError } = useUserByUsername(username);
@@ -54,11 +56,13 @@ export default function Inbox() {
   } = useInboxConversation(targetUser, selectedConversation?.id);
 
   const handleSelectConversation = (conv) => {
-    setManuallySelectedConversation(conv);
+    const otherUser = conv.user1.id === user?.id ? conv.user2 : conv.user1;
+    const username = otherUser.full_name.toLowerCase().replace(/\s+/g, '_');
+    navigate(`/messages/${username}`);
   };
 
   const handleBack = () => {
-    setManuallySelectedConversation(null);
+    navigate('/messages');
   };
 
   if (username && isLoadingUser) {
@@ -97,6 +101,7 @@ export default function Inbox() {
           onSelectConversation={handleSelectConversation}
           currentUserId={user?.id}
           isLoading={isLoadingConversations}
+          isOnline={isOnline}
         />
       </div>
 
@@ -116,6 +121,7 @@ export default function Inbox() {
             onCancelEdit={handleCancelEdit}
             onSaveEdit={handleSaveEdit}
             onBack={handleBack}
+            isOnline={isOnline(targetUser?.id)}
           />
         ) : (
           <EmptyState />

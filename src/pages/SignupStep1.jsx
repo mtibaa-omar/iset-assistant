@@ -84,13 +84,19 @@ export default function SignupStep1() {
           placeholder="••••••••"
           icon={Lock}
           error={errors.password?.message}
-          hint={!errors.password ? "At least 8 characters" : undefined}
+          hint={!errors.password ? "8+ chars, uppercase, lowercase, number & symbol" : undefined}
           disabled={isLoading}
           {...register("password", {
             required: "Password is required",
             minLength: {
               value: 8,
               message: "At least 8 characters",
+            },
+            validate: {
+              hasUpperCase: (value) => /[A-Z]/.test(value) || "Must contain uppercase letter",
+              hasLowerCase: (value) => /[a-z]/.test(value) || "Must contain lowercase letter",
+              hasNumber: (value) => /[0-9]/.test(value) || "Must contain a number",
+              hasSpecialChar: (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value) || "Must contain a special character",
             },
           })}
         />

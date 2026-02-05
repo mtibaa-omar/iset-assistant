@@ -78,7 +78,7 @@ export default function Home() {
   const firstName = userName.split(" ")[0];
 
   return (
-    <div className="px-4 pt-0 pb-4 space-y-6 overflow-y-auto md:px-4 lg:px-8 md:pb-6 md:space-y-8">
+    <div className="px-4 pt-0 pb-4 space-y-6 overflow-y-auto md:px-4 lg:px-8 md:py-6 md:space-y-8">
       <div className="mb-6 md:mb-8">
         <h1 className="mb-1 text-2xl font-bold md:text-3xl lg:text-4xl text-slate-900 dark:text-white md:mb-2">
           {getGreeting()}, {firstName}! 👋

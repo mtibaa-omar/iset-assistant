@@ -1,6 +1,6 @@
 import { formatSmartTime } from "../../utils/dateUtils";
 
-export default function ConversationItem({ conversation, isActive, onClick, currentUserId }) {
+export default function ConversationItem({ conversation, isActive, onClick, currentUserId, isOnline }) {
   const otherUser = conversation.user1.id === currentUserId 
     ? conversation.user2 
     : conversation.user1;
@@ -34,7 +34,11 @@ export default function ConversationItem({ conversation, isActive, onClick, curr
           src={otherUser.avatar_url || "/image.png"}
           alt={otherUser.full_name}
           className="object-cover w-12 h-12 border-2 border-white rounded-full dark:border-zinc-700"
+          onError={(e) => { e.target.src = '/image.png'; }}
         />
+        {isOnline && (
+          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-zinc-800 rounded-full"></div>
+        )}
         {conversation.unread_count > 0 && (
           <div className="absolute flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-purple-600 rounded-full -top-1 -right-1">
             {conversation.unread_count > 9 ? "9+" : conversation.unread_count}

@@ -42,13 +42,15 @@ export function useDMConversation(targetUserId) {
       try {
         const conv = await dmAPI.getOrCreateConversation(targetUserId);
         setConversationId(conv.id);
+        // Invalidate conversations list to show the new conversation in sidebar
+        queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
       } catch (err) {
         console.error("[DM] Error getting conversation:", err);
       }
     };
 
     initConversation();
-  }, [user?.id, targetUserId]);
+  }, [user?.id, targetUserId, queryClient]);
 
   // Fetch messages
   const { data: messages, isLoading } = useQuery({

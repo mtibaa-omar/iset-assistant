@@ -39,3 +39,34 @@ export function formatTime(dateString) {
   if (!dateString) return "";
   return dayjs(dateString).format("HH:mm");
 }
+
+export function shouldShowTimeSeparator(prevMessageDate, currentMessageDate) {
+  if (!prevMessageDate) return false;
+  
+  const prev = dayjs(prevMessageDate);
+  const current = dayjs(currentMessageDate);
+  
+  return current.diff(prev, "hour") >= 1;
+}
+
+export function formatMessageSeparator(dateString) {
+  if (!dateString) return "";
+  
+  const now = dayjs();
+  const date = dayjs(dateString);
+  
+  if (date.isSame(now, "day")) {
+    return date.format("HH:mm");
+  }
+  
+  if (date.isSame(now.subtract(1, "day"), "day")) {
+    return `Hier ${date.format("HH:mm")}`;
+  }
+  
+  const diffInDays = now.diff(date, "day");
+  if (diffInDays < 7) {
+    return `${date.format("ddd HH:mm")}`;
+  }
+  
+  return date.format("D MMM HH:mm");
+}

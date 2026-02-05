@@ -76,7 +76,7 @@ const VideoUrlCellRenderer = (params) => {
       href={params.value}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 underline text-sm truncate block max-w-xs"
+      className="block max-w-xs text-sm text-purple-600 underline truncate hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
       onClick={(e) => e.stopPropagation()}
     >
       {params.value}
@@ -274,13 +274,13 @@ export default function AdminVideos() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6 md:py-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Admin Vidéos
           </h1>
-          <p className="text-sm text-slate-600 dark:text-zinc-400 mt-1">
+          <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
             Gérer les vidéos éducatives
           </p>
         </div>
@@ -315,7 +315,7 @@ export default function AdminVideos() {
       </div>
 
       {selectedRows.length > 0 && (
-        <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+        <div className="flex items-center gap-3 p-4 border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-900/20 dark:border-purple-800">
           <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
             {selectedRows.length} vidéo(s) sélectionnée(s)
           </span>
@@ -374,14 +374,14 @@ export default function AdminVideos() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">
+            <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
               Description (optionnel)
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-3 py-2 bg-white border rounded-lg border-slate-300 dark:border-zinc-700 dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-600 focus:border-transparent"
               placeholder="Brève description de la vidéo..."
             />
           </div>

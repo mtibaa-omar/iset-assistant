@@ -65,12 +65,19 @@ export default function UpdatePassword() {
             placeholder="••••••••"
             icon={Lock}
             error={errors.password?.message}
+            hint={!errors.password ? "8+ caractères, majuscule, minuscule, chiffre & symbole" : undefined}
             disabled={isUpdating}
             {...register("password", {
               required: "Le mot de passe est requis",
               minLength: {
                 value: 8,
                 message: "Au moins 8 caractères",
+              },
+              validate: {
+                hasUpperCase: (value) => /[A-Z]/.test(value) || "Doit contenir une majuscule",
+                hasLowerCase: (value) => /[a-z]/.test(value) || "Doit contenir une minuscule",
+                hasNumber: (value) => /[0-9]/.test(value) || "Doit contenir un chiffre",
+                hasSpecialChar: (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value) || "Doit contenir un caractère spécial",
               },
             })}
           />

@@ -43,6 +43,27 @@ export const authAPI = {
     return data;
   },
 
+  syncMetadataToProfile: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const avatar = user.user_metadata?.avatar_url;
+    const fullName = user.user_metadata?.full_name;
+
+    if (avatar || fullName) {
+      const updates = {};
+      if (avatar) updates.avatar_url = avatar;
+      if (fullName) updates.full_name = fullName;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (error) console.error('Failed to sync profile:', error);
+    }
+  },
+
   getProfile: async (userId) => {
     const { data, error } = await supabase
       .from('profiles')
@@ -71,7 +92,7 @@ export const authAPI = {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, level_id, specialty_id')
+      .select('role, level_id, specialty_id, avatar_url, full_name')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -80,6 +101,8 @@ export const authAPI = {
       profile_role: profile?.role || 'student',
       level_id: profile?.level_id,
       specialty_id: profile?.specialty_id,
+      profile_avatar_url: profile?.avatar_url,
+      profile_full_name: profile?.full_name,
     };
   },
 
@@ -87,12 +110,13 @@ export const authAPI = {
     const { data: currentUser } = await supabase.auth.getUser();
 
     let authUpdateData = { data: {} };
+    let fileName = null;
     
     if (fullName) authUpdateData.data.full_name = fullName;
     if (password) authUpdateData.password = password;
 
      if (avatar) {
-      const fileName = `avatar-${currentUser.user.id}-${Math.random()}`;
+      fileName = `avatar-${currentUser.user.id}-${Math.random()}`;
       const { error: errorStorage } = await supabase.storage
         .from("avatars")
         .upload(fileName, avatar);
@@ -106,6 +130,9 @@ export const authAPI = {
     if (fullName) profileUpdate.full_name = fullName;
     if (level) profileUpdate.level_id = level;
     if (speciality) profileUpdate.specialty_id = speciality;
+    if (avatar && fileName) {
+      profileUpdate.avatar_url = `${supabaseUrl}/storage/v1/object/public/avatars/${fileName}`;
+    }
 
     if (Object.keys(profileUpdate).length > 0) {
       const { error: profileError } = await supabase

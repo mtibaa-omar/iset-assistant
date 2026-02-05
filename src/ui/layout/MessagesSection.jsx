@@ -145,13 +145,19 @@ export default function MessagesSection({ collapsed, onNavigate }) {
           />
           
           {searchQuery.length >= 3 && (
-            <div className="mt-2 overflow-hidden border rounded-lg bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700">
+            <div className="mt-2 overflow-hidden rounded-lg dark:bg-zinc-800 dark:border-zinc-700">
               {isSearching ? (
                 <div className="flex items-center justify-center p-4">
                   <Spinner size="h-6 w-6" className="my-0" />
                 </div>
               ) : searchResults.length === 0 ? (
-                <div className="px-3 py-2 text-xs italic text-slate-400">Aucun utilisateur trouvé</div>
+                <div className="flex flex-col items-center justify-center px-3 py-4 text-center">
+                  <div className="flex items-center justify-center w-10 h-10 mb-2 rounded-full bg-slate-100 dark:bg-zinc-700">
+                    <Search className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Aucun résultat</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Essayez un autre nom</p>
+                </div>
               ) : (
                 <div className="overflow-y-auto" style={{ maxHeight: "104px" }}>
                   {searchResults.map((searchUser) => (
@@ -179,10 +185,23 @@ export default function MessagesSection({ collapsed, onNavigate }) {
 
       <div className="space-y-0.5">
         {isLoading ? (
-          <div className="px-3 py-2 text-xs text-slate-400">Chargement...</div>
+          <div className="flex items-center justify-center px-3 py-8">
+            <Spinner size="h-6 w-6" className="my-0" />
+          </div>
         ) : conversations.length === 0 ? (
-          <div className="px-3 py-2 text-xs italic text-slate-400">
-            Aucune conversation
+          <div className="flex flex-col items-center justify-center px-3 py-8 text-center">
+            <div className="flex items-center justify-center w-12 h-12 mb-3 rounded-full bg-slate-100 dark:bg-zinc-800">
+              <MessageSquare className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            </div>
+            <p className="mb-1 text-sm font-medium text-slate-600 dark:text-slate-300">Aucune conversation</p>
+            <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">Commencez une nouvelle discussion</p>
+            <button
+              onClick={handleToggleSearch}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nouveau message</span>
+            </button>
           </div>
         ) : (
           conversations.map((conv) => {

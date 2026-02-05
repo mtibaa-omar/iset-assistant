@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react";
+import { useForm } from "react-hook-form";
 import { Plus, Save, Loader2, Trash2, FilterX } from "lucide-react";
 import { useProgramSubjects } from "../features/admin/useProgramSubjects";
 import { useCreateProgramSubject, useUpdateProgramSubject, useDeleteProgramSubject } from "../features/admin/useProgramSubjectsMutations";
@@ -6,6 +7,7 @@ import { useSubjectsAdmin } from "../features/admin/useSubjectsAdmin";
 import { useLevels } from "../features/admin/useLevels";
 import { useSpecialties } from "../features/admin/useSpecialties";
 import { useUnites } from "../features/admin/useUnites";
+import { useDepartments } from "../features/admin/useDepartments";
 import { useAdminFilters } from "../features/admin/hooks/useAdminFilters";
 import AdminTable from "../features/admin/components/AdminTable";
 import ActionsCellRenderer from "../features/admin/components/ActionsCellRenderer";
@@ -44,17 +46,27 @@ export default function AdminPrograms() {
   const { levels, isLoading: isLevelsLoading } = useLevels();
   const { specialties, isLoading: isSpecialtiesLoading } = useSpecialties();
   const { unites, isLoading: isUnitesLoading } = useUnites();
+  const { departments, isLoading: isDepartmentsLoading } = useDepartments();
   const { createProgramSubject, isCreating } = useCreateProgramSubject();
   const { updateProgramSubject, isUpdating } = useUpdateProgramSubject();
   const { deleteProgramSubject, isDeleting } = useDeleteProgramSubject();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState(emptyProgramSubject);
+  
+  // Form filters for cascading selections
+  const [formDegree, setFormDegree] = useState("");
+  const [formDepartment, setFormDepartment] = useState("");
+  const [formLevel, setFormLevel] = useState("");
+  const [formSpecialty, setFormSpecialty] = useState("");
   
   const [selectedRows, setSelectedRows] = useState([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+    defaultValues: emptyProgramSubject
+  });
 
   const {
     filterDegree,
@@ -82,6 +94,75 @@ export default function AdminPrograms() {
   const subjectOptions = useMemo(() => 
     subjects.map(s => ({ value: s.id, label: s.name }))
   , [subjects]);
+  
+  const departmentOptions = useMemo(() => 
+    departments.map(d => ({ value: d.id, label: d.name }))
+  , [departments]);
+  
+  // Filtered options for form based on selections
+  const formLevelOptions = useMemo(() => {
+    if (!formDegree && !formDepartment) return levels.map(l => ({ value: l.id, label: l.name }));
+    
+    let filteredSpecialties = specialties;
+    if (formDegree) {
+      filteredSpecialties = filteredSpecialties.filter(s => s.degree === formDegree);
+    }
+    if (formDepartment) {
+      filteredSpecialties = filteredSpecialties.filter(s => s.department_id === formDepartment);
+    }
+    
+    const levelIds = new Set();
+    filteredSpecialties.forEach(spec => {
+      programSubjects
+        .filter(ps => ps.specialty_id === spec.id)
+        .forEach(ps => levelIds.add(ps.level_id));
+    });
+    
+    return levels
+      .filter(l => levelIds.has(l.id))
+      .map(l => ({ value: l.id, label: l.name }));
+  }, [formDegree, formDepartment, levels, specialties, programSubjects]);
+
+  const formSpecialtyOptions = useMemo(() => {
+    let filtered = specialties;
+    
+    if (formDegree) {
+      filtered = filtered.filter(s => s.degree === formDegree);
+    }
+    
+    if (formDepartment) {
+      filtered = filtered.filter(s => s.department_id === formDepartment);
+    }
+    
+    if (formLevel) {
+      const specialtyIds = new Set(
+        programSubjects
+          .filter(ps => ps.level_id === formLevel)
+          .map(ps => ps.specialty_id)
+      );
+      filtered = filtered.filter(s => specialtyIds.has(s.id));
+    }
+    
+    return filtered.map(s => ({ 
+      value: s.id, 
+      label: `${s.name}${!formDegree ? ` (${s.degree === 'licence' ? 'L' : 'M'})` : ''}` 
+    }));
+  }, [formDegree, formDepartment, formLevel, specialties, programSubjects]);
+
+  const formSubjectOptions = useMemo(() => {
+    if (!formSpecialty) return subjectOptions;
+    
+    const subjectIds = new Set(
+      programSubjects
+        .filter(ps => ps.specialty_id === formSpecialty)
+        .map(ps => ps.subject_id)
+    );
+    
+    return subjects
+      .filter(s => subjectIds.has(s.id))
+      .map(s => ({ value: s.id, label: s.name }));
+  }, [formSpecialty, subjects, programSubjects, subjectOptions]);
+  
   const specialtyFormOptions = useMemo(() => 
     specialties.map(s => ({ value: s.id, label: `${s.name} (${s.degree === 'licence' ? 'L' : 'M'})` }))
   , [specialties]);
@@ -89,6 +170,7 @@ export default function AdminPrograms() {
   const levelFormOptions = useMemo(() => 
     levels.map(l => ({ value: l.id, label: l.name }))
   , [levels]);
+  
   const uniteOptions = useMemo(() => 
     unites.map(u => ({ value: u.id, label: u.name }))
   , [unites]);
@@ -185,13 +267,22 @@ export default function AdminPrograms() {
 
   function openCreateModal() {
     setEditingItem(null);
-    setFormData(emptyProgramSubject);
+    reset(emptyProgramSubject);
+    setFormDegree("");
+    setFormDepartment("");
+    setFormLevel("");
+    setFormSpecialty("");
     setIsModalOpen(true);
   }
 
   function openEditModal(item) {
     setEditingItem(item);
-    setFormData({
+    const specialty = specialties.find(s => s.id === item.specialty_id);
+    setFormDegree(specialty?.degree || "");
+    setFormDepartment(specialty?.department_id || "");
+    setFormLevel(item.level_id || "");
+    setFormSpecialty(item.specialty_id || "");
+    reset({
       subject_id: item.subjects?.id || "",
       specialty_id: item.specialties?.id || "",
       level_id: item.levels?.id || "",
@@ -207,16 +298,18 @@ export default function AdminPrograms() {
   function closeModal() {
     setIsModalOpen(false);
     setEditingItem(null);
-    setFormData(emptyProgramSubject);
+    reset(emptyProgramSubject);
+    setFormDegree("");
+    setFormDepartment("");
+    setFormLevel("");
+    setFormSpecialty("");
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    
+  function onSubmit(data) {
     const submissionData = {
-      ...formData,
-      coefficient: parseFloat(formData.coefficient),
-      credit: parseFloat(formData.credit),
+      ...data,
+      coefficient: parseFloat(data.coefficient),
+      credit: parseFloat(data.credit),
     };
     
     if (editingItem) {
@@ -224,6 +317,39 @@ export default function AdminPrograms() {
     } else {
       createProgramSubject(submissionData, { onSuccess: closeModal });
     }
+  }
+
+  function handleFormDegreeChange(value) {
+    setFormDegree(value);
+    setFormDepartment("");
+    setFormLevel("");
+    setFormSpecialty("");
+    setValue("specialty_id", "");
+    setValue("level_id", "");
+    setValue("subject_id", "");
+  }
+
+  function handleFormDepartmentChange(value) {
+    setFormDepartment(value);
+    setFormLevel("");
+    setFormSpecialty("");
+    setValue("specialty_id", "");
+    setValue("level_id", "");
+    setValue("subject_id", "");
+  }
+
+  function handleFormLevelChange(value) {
+    setFormLevel(value);
+    setFormSpecialty("");
+    setValue("specialty_id", "");
+    setValue("level_id", value);
+    setValue("subject_id", "");
+  }
+
+  function handleFormSpecialtyChange(value) {
+    setFormSpecialty(value);
+    setValue("specialty_id", value);
+    setValue("subject_id", "");
   }
 
   function handleDeleteClick(id) {
@@ -269,13 +395,13 @@ export default function AdminPrograms() {
   }
 
   return (
-    <div className="px-6 pb-6 pt-0 space-y-6">
+    <div className="px-6 pt-0 pb-6 space-y-6">
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
           Gestion des Affectations
         </h1>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="w-40">
               <Select
                 label=""
@@ -349,80 +475,112 @@ export default function AdminPrograms() {
         onClose={closeModal}
         title={editingItem ? "Modifier l'affectation" : "Nouvelle affectation"}
       >
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+          <div className="p-4 mb-4 rounded-lg ">
+            <div className="grid grid-cols-4 gap-3">
+              <Select
+                label="Diplôme"
+                value={formDegree}
+                onChange={(e) => handleFormDegreeChange(e.target.value)}
+                options={[
+                  { value: "", label: "Tous" },
+                  { value: "licence", label: "Licence" },
+                  { value: "master", label: "Master" },
+                ]}
+              />
+              <Select
+                label="Département"
+                value={formDepartment}
+                onChange={(e) => handleFormDepartmentChange(e.target.value)}
+                options={[
+                  { value: "", label: "Tous" },
+                  ...departmentOptions,
+                ]}
+                disabled={isDepartmentsLoading}
+              />
+              <Select
+                label="Niveau"
+                {...register("level_id", { required: "Niveau requis" })}
+                value={formLevel}
+                onChange={(e) => handleFormLevelChange(e.target.value)}
+                options={[
+                  { value: "", label: "Tous" },
+                  ...formLevelOptions,
+                ]}
+                disabled={isLevelsLoading}
+                error={errors.level_id?.message}
+              />
+              <Select
+                label="Spécialité"
+                {...register("specialty_id", { required: "Spécialité requise" })}
+                value={formSpecialty}
+                onChange={(e) => handleFormSpecialtyChange(e.target.value)}
+                options={[
+                  { value: "", label: "Toutes" },
+                  ...formSpecialtyOptions,
+                ]}
+                disabled={isSpecialtiesLoading}
+                error={errors.specialty_id?.message}
+              />
+            </div>
+          </div>
+
           <Select
             label="Matière"
-            value={formData.subject_id}
-            onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
-            options={subjectOptions}
-            required
+            {...register("subject_id", { required: "Matière requise" })}
+            options={formSubjectOptions}
             disabled={isSubjectsLoading}
+            error={errors.subject_id?.message}
           />
 
           <div className="grid grid-cols-2 gap-4">
             <Select
-              label="Spécialité"
-              value={formData.specialty_id}
-              onChange={(e) => setFormData({ ...formData, specialty_id: e.target.value })}
-              options={specialtyFormOptions}
-              required
-              disabled={isSpecialtiesLoading}
-            />
-            <Select
-              label="Niveau"
-              value={formData.level_id}
-              onChange={(e) => setFormData({ ...formData, level_id: e.target.value })}
-              options={levelFormOptions}
-              required
-              disabled={isLevelsLoading}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Select
               label="Semestre"
-              value={formData.semester}
-              onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+              {...register("semester", { required: "Semestre requis" })}
               options={SEMESTER_OPTIONS}
-              required
+              error={errors.semester?.message}
             />
             <Select
               label="Unité"
-              value={formData.unite_id}
-              onChange={(e) => setFormData({ ...formData, unite_id: e.target.value })}
+              {...register("unite_id", { required: "Unité requise" })}
               options={uniteOptions}
-              required
               disabled={isUnitesLoading}
+              error={errors.unite_id?.message}
             />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <Select
               label="Mode"
-              value={formData.mode}
-              onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
+              {...register("mode", { required: "Mode requis" })}
               options={MODE_OPTIONS}
-              required
+              error={errors.mode?.message}
             />
             <Input
               label="Coefficient"
               type="number"
               step="0.5"
               min="0.5"
-              value={formData.coefficient}
-              onChange={(e) => setFormData({ ...formData, coefficient: e.target.value })}
-              required
+              {...register("coefficient", { 
+                required: "Coefficient requis",
+                min: { value: 0.5, message: "Minimum 0.5" }
+              })}
               placeholder="Ex: 2"
+              error={errors.coefficient?.message}
+              inputClassName="!py-1.5"
             />
             <Input
               label="Crédit"
               type="number"
               step="0.5"
               min="0"
-              value={formData.credit}
-              onChange={(e) => setFormData({ ...formData, credit: e.target.value })}
-              required
+              {...register("credit", { 
+                required: "Crédit requis",
+                min: { value: 0, message: "Minimum 0" }
+              })}
               placeholder="Ex: 3"
+              error={errors.credit?.message}
+              inputClassName="!py-1.5"
             />
           </div>
 

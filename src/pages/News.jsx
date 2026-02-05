@@ -15,7 +15,7 @@ export default function News() {
     );
   }
   return (
-    <div className="flex-1 px-4 space-y-6 overflow-y-auto lg:px-8">
+    <div className="flex-1 px-4 space-y-6 overflow-y-auto md:py-6 lg:px-8">
       <div className="pr-16 mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">

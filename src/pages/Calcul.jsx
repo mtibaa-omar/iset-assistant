@@ -123,7 +123,7 @@ export default function Calcul() {
   };
 
   return (
-    <div className="px-4 pb-12 space-y-6 overflow-y-auto md:px-6 lg:px-10">
+    <div className="px-4 pb-12 space-y-6 overflow-y-auto md:px-6 lg:px-10 md:py-6">
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">

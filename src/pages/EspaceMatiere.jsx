@@ -120,7 +120,7 @@ export default function EspaceMatiere() {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 px-4 pt-0 pb-4 space-y-6 overflow-hidden md:px-6 lg:px-10 md:pb-6">
+    <div className="flex flex-col flex-1 min-h-0 px-4 pt-0 pb-4 space-y-6 overflow-hidden md:px-6 md:py-6 lg:px-10 md:pb-6">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">

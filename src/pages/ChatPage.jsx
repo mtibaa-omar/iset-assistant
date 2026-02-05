@@ -7,6 +7,7 @@ import MessageBubble from "../features/chat/MessageBubble";
 import MessageInput from "../features/chat/MessageInput";
 import Spinner from "../ui/components/Spinner";
 import Confirm from "../ui/components/Confirm";
+import { shouldShowTimeSeparator, formatMessageSeparator } from "../utils/dateUtils";
 
 export default function ChatPage() {
   const { subjectId } = useParams();
@@ -99,15 +100,31 @@ export default function ChatPage() {
           </div>
         ) : (
           <div className="space-y-1">
-            {messages.map((message) => (
-              <MessageBubble 
-                key={message.id} 
-                message={message} 
-                onDelete={handleDeleteMessage}
-                onEdit={handleEditMessage}
-                isEditing={editingMessage?.id === message.id}
-              />
-            ))}
+            {messages.map((message, index) => {
+              const prevMessage = index > 0 ? messages[index - 1] : null;
+              const showSeparator = shouldShowTimeSeparator(
+                prevMessage?.created_at,
+                message.created_at
+              );
+
+              return (
+                <div key={message.id}>
+                  {showSeparator && (
+                    <div className="flex items-center justify-center py-3">
+                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400">
+                        {formatMessageSeparator(message.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  <MessageBubble 
+                    message={message} 
+                    onDelete={handleDeleteMessage}
+                    onEdit={handleEditMessage}
+                    isEditing={editingMessage?.id === message.id}
+                  />
+                </div>
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
         )}

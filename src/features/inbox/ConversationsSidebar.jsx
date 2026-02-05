@@ -3,7 +3,7 @@ import { MessageSquare, Search } from "lucide-react";
 import ConversationItem from "./ConversationItem";
 import Spinner from "../../ui/components/Spinner";
 
-export default function ConversationsSidebar({ conversations, activeConversationId, onSelectConversation, currentUserId, isLoading }) {
+export default function ConversationsSidebar({ conversations, activeConversationId, onSelectConversation, currentUserId, isLoading, isOnline }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredConversations = conversations.filter(conv => {
@@ -49,15 +49,19 @@ export default function ConversationsSidebar({ conversations, activeConversation
             </p>
           </div>
         ) : (
-          filteredConversations.map((conv) => (
-            <ConversationItem
-              key={conv.id}
-              conversation={conv}
-              isActive={conv.id === activeConversationId}
-              onClick={() => onSelectConversation(conv)}
-              currentUserId={currentUserId}
-            />
-          ))
+          filteredConversations.map((conv) => {
+            const otherUser = conv.user1.id === currentUserId ? conv.user2 : conv.user1;
+            return (
+              <ConversationItem
+                key={conv.id}
+                conversation={conv}
+                isActive={conv.id === activeConversationId}
+                onClick={() => onSelectConversation(conv)}
+                currentUserId={currentUserId}
+                isOnline={isOnline(otherUser.id)}
+              />
+            );
+          })
         )}
       </div>
     </div>

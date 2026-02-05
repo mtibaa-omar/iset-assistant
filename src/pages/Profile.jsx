@@ -102,7 +102,7 @@ export default function Profile() {
 
   return (
     <>
-    <div className="max-w-xl md:max-w-lg lg:max-w-4xl 2xl:max-w-full px-6 sm:px-6 2xl:px-24 2xl:py-2">
+    <div className="max-w-xl px-6 md:max-w-lg lg:max-w-4xl 2xl:max-w-full sm:px-6 2xl:px-24 2xl:py-2 overflow-y-auto">
       <div className="mb-4 md:mb-5">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl md:text-3xl 2xl:text-5xl">
           Profil
@@ -113,10 +113,10 @@ export default function Profile() {
       </div>
 
       <div className="space-y-6">
-        <div className="p-5 md:p-4 2xl:p-8 transition-all border shadow-sm bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
+        <div className="p-5 transition-all border shadow-sm md:p-4 2xl:p-8 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-8">
-            <div className="relative group self-center md:self-auto">
-              <div className="relative w-24 h-24 md:w-24 overflow-hidden rounded-full ring-4 ring-white dark:ring-zinc-800 shadow-xl md:h-24">
+            <div className="relative self-center group md:self-auto">
+              <div className="relative w-24 h-24 overflow-hidden rounded-full shadow-xl md:w-24 ring-4 ring-white dark:ring-zinc-800 md:h-24">
                 <img
                   src={avatarPreview}
                   alt="Profile"
@@ -136,12 +136,12 @@ export default function Profile() {
                 <h3 className="text-base font-bold text-slate-900 dark:text-white md:text-xl">
                   Photo de profil
                 </h3>
-                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto md:mx-0 md:text-sm">
+                <p className="max-w-sm mx-auto mt-1 text-xs text-slate-500 dark:text-zinc-400 md:mx-0 md:text-sm">
                   Cette photo sera affichée sur votre profil public et dans les discussions de cours.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start md:gap-4">
                 <input
                   type="file"
                   className="hidden"
@@ -173,7 +173,7 @@ export default function Profile() {
         </div>
 
         <form onSubmit={handleSubmit(handleProfileSubmit)} className="space-y-6 md:space-y-6">
-          <div className="space-y-6 md:space-y-4 p-6 md:px-4 md:py-4 2xl:p-8 transition-all border shadow-sm bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
+          <div className="p-6 space-y-6 transition-all border shadow-sm md:space-y-4 md:px-4 md:py-4 2xl:p-8 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm rounded-3xl border-slate-200 dark:border-zinc-800">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl 2xl:text-3xl">
               Compte
             </h2>
@@ -235,7 +235,7 @@ export default function Profile() {
               </div>
             </div>
             
-            <div className="pt-4 md:pt-6 border-t border-slate-200 dark:border-zinc-800 flex justify-end">
+            <div className="flex justify-end pt-4 border-t md:pt-6 border-slate-200 dark:border-zinc-800">
               <Button
                 type="submit"
                 isLoading={isUpdating}

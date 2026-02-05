@@ -9,6 +9,12 @@ export default function UserAvatar({ collapsed }) {
   const handleClick = () => {
     navigate('/account');
   };
+  const avatarUrl = user?.profile_avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.avatar || "/image.png";
+  const displayName = user?.profile_full_name || user?.user_metadata?.full_name || "ISET Assistant";
+  const handleImageError = (e) => {
+    console.error('Avatar failed to load:', e.target.src);
+    e.target.src = '/image.png';
+  };
 
   return (
     <div 
@@ -19,16 +25,18 @@ export default function UserAvatar({ collapsed }) {
     >
       <img 
         className={`flex-shrink-0 object-cover rounded-full ${collapsed ? "w-12 h-12" : "w-12 h-12"}`} 
-        alt={user?.user_metadata?.full_name || "User"} 
-        src={user?.user_metadata?.avatar || user?.user_metadata?.avatar_url || "/image.png"} 
+        alt={displayName} 
+        src={avatarUrl}
+        onError={handleImageError}
+        referrerPolicy="no-referrer"
       />
       {!collapsed && (
         <div className="overflow-hidden whitespace-nowrap">
           <h3 className="text-base font-semibold truncate text-slate-800 dark:text-white">
-            {user?.user_metadata?.full_name || "ISET Assistant"}
+            {displayName}
           </h3>
           <h4 className="text-xs font-medium text-slate-500 dark:text-white/60">
-            {user.profile_role.charAt(0).toUpperCase() + user.profile_role.slice(1)}
+            {user?.profile_role ? user.profile_role.charAt(0).toUpperCase() + user.profile_role.slice(1) : 'Student'}
           </h4>
         </div>
       )}

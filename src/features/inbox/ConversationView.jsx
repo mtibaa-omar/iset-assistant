@@ -5,6 +5,7 @@ import MessageInput from "../chat/MessageInput";
 import Button from "../../ui/components/Button";
 import Spinner from "../../ui/components/Spinner";
 import { useMoveBack } from "../../hooks/useMoveBack";
+import { shouldShowTimeSeparator, formatMessageSeparator } from "../../utils/dateUtils";
 
 export default function ConversationView({ 
   targetUser, 
@@ -18,7 +19,8 @@ export default function ConversationView({
   onEditMessage, 
   editingMessage, 
   onCancelEdit, 
-  onSaveEdit, 
+  onSaveEdit,
+  isOnline,
 }) {
   const messagesEndRef = useRef(null);
   const moveBack = useMoveBack();
@@ -37,20 +39,29 @@ export default function ConversationView({
           className="!p-2 md:hidden"
         />
 
-        <img
-          src={targetUser.avatar_url || "/image.png"}
-          alt={targetUser.full_name}
-          className="object-cover w-10 h-10 border-2 border-white rounded-full dark:border-zinc-700"
-        />
+        <div className="relative">
+          <img
+            src={targetUser.avatar_url || "/image.png"}
+            alt={targetUser.full_name}
+            className="object-cover w-10 h-10 border-2 border-white rounded-full dark:border-zinc-700"
+          />
+          {isOnline && (
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full dark:border-zinc-900"></div>
+          )}
+        </div>
 
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-bold truncate text-slate-900 dark:text-white">
             {targetUser.full_name}
           </h1>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Online</span>
-          </div>
+          {isOnline ? (
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-600 dark:text-green-400">En ligne</span>
+            </div>
+          ) : (
+            <span className="text-xs text-slate-500 dark:text-slate-400">Hors ligne</span>
+          )}
         </div>
       </div>
 
@@ -73,15 +84,31 @@ export default function ConversationView({
           </div>
         ) : (
           <div className="space-y-1">
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                onDelete={onDeleteMessage}
-                onEdit={onEditMessage}
-                isEditing={editingMessage?.id === message.id}
-              />
-            ))}
+            {messages.map((message, index) => {
+              const prevMessage = index > 0 ? messages[index - 1] : null;
+              const showSeparator = shouldShowTimeSeparator(
+                prevMessage?.created_at,
+                message.created_at
+              );
+
+              return (
+                <div key={message.id}>
+                  {showSeparator && (
+                    <div className="flex items-center justify-center py-3">
+                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400">
+                        {formatMessageSeparator(message.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  <MessageBubble
+                    message={message}
+                    onDelete={onDeleteMessage}
+                    onEdit={onEditMessage}
+                    isEditing={editingMessage?.id === message.id}
+                  />
+                </div>
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
         )}

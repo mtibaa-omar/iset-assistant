@@ -221,7 +221,7 @@ const ToolCard = ({ tool }) => {
 
 export default function Outils() {
   return (
-    <div className="overflow-y-auto px-4 md:px-6 lg:px-10 pb-12">
+    <div className="overflow-y-auto px-4 md:px-6 lg:px-10 pb-12 md:py-6">
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
           <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/20">
