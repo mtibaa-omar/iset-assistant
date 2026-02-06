@@ -3,11 +3,18 @@ import { useEffect } from "react";
 import { supabase } from "../../services/supabase";
 import { chatAPI } from "../../services/api/apiChat";
 import { chatKeys } from "./chatKeys";
+import { playSound, SOUNDS } from "../../utils/soundUtils";
+import { useUser } from "../auth/useUser";
 
 export function useMessages(programSubjectId) {
   const queryClient = useQueryClient();
+  const { user } = useUser();
 
-  const { data: messages, isLoading, error } = useQuery({
+  const {
+    data: messages,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: chatKeys.messages(programSubjectId),
     queryFn: () => chatAPI.getMessages(programSubjectId),
     enabled: !!programSubjectId,
@@ -15,19 +22,27 @@ export function useMessages(programSubjectId) {
 
   useEffect(() => {
     if (!programSubjectId) return;
-    
-    const channel = chatAPI.subscribeToMessages(programSubjectId, (newMessage) => {
-      queryClient.setQueryData(chatKeys.messages(programSubjectId), (old) => {
-        if (!old) return [newMessage];
-        if (old.some((msg) => msg.id === newMessage.id)) return old;
-        return [...old, newMessage];
-      });
-    });
+
+    const channel = chatAPI.subscribeToMessages(
+      programSubjectId,
+      (newMessage) => {
+        queryClient.setQueryData(chatKeys.messages(programSubjectId), (old) => {
+          if (!old) return [newMessage];
+          if (old.some((msg) => msg.id === newMessage.id)) return old;
+
+          if (user && newMessage.user_id !== user.id) {
+            playSound(SOUNDS.MESSAGE_GET);
+          }
+
+          return [...old, newMessage];
+        });
+      },
+    );
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [programSubjectId, queryClient]);
+  }, [programSubjectId, queryClient, user]);
 
   return { messages: messages || [], isLoading, error };
 }
@@ -52,6 +67,8 @@ export function useSendMessage() {
         if (old.some((msg) => msg.id === newMessage.id)) return old;
         return [...old, newMessage];
       });
+
+      playSound(SOUNDS.MESSAGE_SENT);
     },
   });
 

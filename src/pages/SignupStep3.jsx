@@ -96,7 +96,7 @@ export default function SignupStep3() {
       },
       {
         onSuccess: () => {
-          toast.success("Account setup complete!");
+          toast.success("Configuration du compte terminée !");
           navigate("/");
           setTimeout(() => resetSignup(), 100);
         },
@@ -110,43 +110,43 @@ export default function SignupStep3() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 md:space-y-4">
       <div className="space-y-3 md:space-y-4 duration-300 animate-in fade-in slide-in-from-right">
         <Select
-          label="Department"
+          label="Département"
           icon={Building2}
-          placeholder="Select your department"
+          placeholder="Sélectionnez votre département"
           options={departments.map((d) => ({ value: d.id, label: d.name }))}
           disabled={isLoading}
           error={errors.department?.message}
-          {...register("department", { required: "Department is required" })}
+          {...register("department", { required: "Le département est requis" })}
         />
 
         <Select
-          label="Degree"
+          label="Diplôme"
           icon={Award}
-          placeholder="Licence or Master"
+          placeholder="Licence ou Master"
           options={DEGREE_TYPES}
           disabled={isLoading || !selectedDepartment}
           error={errors.degreeType?.message}
-          {...register("degreeType", { required: "Degree type is required" })}
+          {...register("degreeType", { required: "Le type de diplôme est requis" })}
         />
 
         <Select
-          label="Level"
+          label="Niveau"
           icon={GraduationCap}
-          placeholder={selectedDegreeType ? "Select your level" : "Select degree first"}
+          placeholder={selectedDegreeType ? "Sélectionnez votre niveau" : "Sélectionnez d'abord le diplôme"}
           options={filteredLevels.map((l) => ({ value: l.id, label: l.name }))}
           disabled={isLoading || !selectedDegreeType}
           error={errors.level?.message}
-          {...register("level", { required: "Level is required" })}
+          {...register("level", { required: "Le niveau est requis" })}
         />
 
         <Select
-          label="Speciality"
+          label="Spécialité"
           icon={BookOpen}
-          placeholder={selectedLevel ? "Select your speciality" : "Select level first"}
+          placeholder={selectedLevel ? "Sélectionnez votre spécialité" : "Sélectionnez d'abord le niveau"}
           options={filteredSpecialties.map((s) => ({ value: s.id, label: s.name }))}
           disabled={isLoading || !selectedLevel}
           error={errors.speciality?.message}
-          {...register("speciality", { required: "Speciality is required" })}
+          {...register("speciality", { required: "La spécialité est requise" })}
         />
       </div>
 
@@ -158,16 +158,16 @@ export default function SignupStep3() {
         className="w-full"
         disabled={isUpdating}
       >
-        {isUpdating ? "Saving..." : "Complete signup"}
+        {isUpdating ? "Enregistrement..." : "Terminer l'inscription"}
       </Button>
 
       <p className="mt-4 md:mt-6 text-xs md:text-sm text-center text-slate-600 dark:text-slate-400">
-        Already have an account?{" "}
+        Vous avez déjà un compte ?{" "}
         <Link
           to="/login"
           className="font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
         >
-          Login
+          Connexion
         </Link>
       </p>
     </form>

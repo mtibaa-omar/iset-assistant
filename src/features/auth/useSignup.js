@@ -7,10 +7,10 @@ export function useSignup() {
         mutationFn: ({ email, password, userData }) =>
             authAPI.signUp(email, password, userData),
         onSuccess: () => {
-            toast.success("Verification code sent to your email!");
+            toast.success("Code de vérification envoyé à votre email !");
         },
         onError: (err) => {
-            const message = err.message || "Error during registration";
+            const message = err.message || "Erreur lors de l'inscription";
             toast.error(message);
         },
     });

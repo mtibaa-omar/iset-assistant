@@ -10,7 +10,7 @@ export function useCreateNews() {
     mutationFn: newsAPI.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
-      toast.success("News created successfully!");
+      toast.success("Actualité créée avec succès !");
     },
     onError: (err) => toast.error(err.message),
   });   
@@ -25,7 +25,7 @@ export function useUpdateNews() {
     mutationFn: ({ id, data }) => newsAPI.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
-      toast.success("News updated successfully!");
+      toast.success("Actualité modifiée avec succès !");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -40,7 +40,7 @@ export function useDeleteNews() {
     mutationFn: newsAPI.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
-      toast.success("News deleted successfully!");
+      toast.success("Actualité supprimée avec succès !");
     },
     onError: (err) => toast.error(err.message),
   });

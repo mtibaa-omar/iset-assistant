@@ -11,11 +11,11 @@ export function useLogout() {
         mutationFn: authAPI.signOut,
         onSuccess: () => {
             queryClient.clear();
-            toast.success("Logout successfully!");
+            toast.success("Déconnexion réussie !");
             navigate("/login", { replace: true });
         },
         onError: (err) => {
-            const message = err.message || "Logout failed!";
+            const message = err.message || "Échec de la déconnexion !";
             toast.error(message);
         },
     });

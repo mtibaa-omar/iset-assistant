@@ -51,10 +51,10 @@ export function useUpsertGrades() {
     mutationFn: subjectsAPI.upsertGrades,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: subjectKeys.all });
-      toast.success("Grades saved successfully!");
+      toast.success("Notes enregistrées avec succès !");
     },
     onError: (err) => {
-      toast.error(err.message || "Failed to save grades");
+      toast.error(err.message || "Échec de l'enregistrement des notes");
     },
   });
 

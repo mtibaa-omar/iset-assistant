@@ -31,7 +31,7 @@ export default function AppLayout() {
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="p-2 transition-all border shadow-sm rounded-xl bg-slate-50/50 dark:bg-zinc-900/50 border-slate-200/60 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-zinc-800 lg:hidden"
-              aria-label="Open menu"
+              aria-label="Ouvrir le menu"
             >
               <Menu className="w-5 h-5 text-slate-600 dark:text-zinc-400" />
             </button>

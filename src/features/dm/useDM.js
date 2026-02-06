@@ -4,6 +4,7 @@ import { supabase } from "../../services/supabase";
 import { dmAPI } from "../../services/api/apiDM";
 import { dmKeys } from "./dmKeys";
 import { useUser } from "../auth/useUser";
+import { playSound, SOUNDS } from "../../utils/soundUtils";
 
 // Hook to search users
 export function useSearchUsers(query) {
@@ -18,7 +19,11 @@ export function useSearchUsers(query) {
 
 // Hook to get user by username
 export function useUserByUsername(username) {
-  const { data: targetUser, isLoading, error } = useQuery({
+  const {
+    data: targetUser,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: dmKeys.user(username),
     queryFn: () => dmAPI.getUserByUsername(username),
     enabled: !!username,
@@ -43,7 +48,9 @@ export function useDMConversation(targetUserId) {
         const conv = await dmAPI.getOrCreateConversation(targetUserId);
         setConversationId(conv.id);
         // Invalidate conversations list to show the new conversation in sidebar
-        queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
+        queryClient.invalidateQueries({
+          queryKey: dmKeys.conversations(user.id),
+        });
       } catch (err) {
         console.error("[DM] Error getting conversation:", err);
       }
@@ -67,6 +74,12 @@ export function useDMConversation(targetUserId) {
       queryClient.setQueryData(dmKeys.messages(conversationId), (old) => {
         if (!old) return [newMessage];
         if (old.some((msg) => msg.id === newMessage.id)) return old;
+
+        // Play sound for incoming messages from other users
+        if (user && newMessage.sender_id !== user.id) {
+          playSound(SOUNDS.MESSAGE_GET);
+        }
+
         return [...old, newMessage];
       });
     });
@@ -78,7 +91,7 @@ export function useDMConversation(targetUserId) {
         });
       }
     };
-  }, [conversationId, queryClient]);
+  }, [conversationId, queryClient, user]);
 
   return { conversationId, messages: messages || [], isLoading };
 }
@@ -88,7 +101,15 @@ export function useSendDM() {
   const queryClient = useQueryClient();
 
   const { mutate: sendMessage, isPending: isSending } = useMutation({
-    mutationFn: ({ conversationId, body, kind, cloudinaryUrl, cloudinaryPublicId, fileName, examId }) =>
+    mutationFn: ({
+      conversationId,
+      body,
+      kind,
+      cloudinaryUrl,
+      cloudinaryPublicId,
+      fileName,
+      examId,
+    }) =>
       dmAPI.sendMessage({
         conversationId,
         body,
@@ -104,6 +125,9 @@ export function useSendDM() {
         if (old.some((msg) => msg.id === newMessage.id)) return old;
         return [...old, newMessage];
       });
+
+      // Play sound when DM is sent successfully
+      playSound(SOUNDS.MESSAGE_SENT);
     },
   });
 
@@ -130,7 +154,7 @@ export function useConversations() {
     }
 
     const channelName = `dm-conversations-${user.id}`;
-    
+
     channelRef.current = supabase
       .channel(channelName)
       .on(
@@ -141,8 +165,10 @@ export function useConversations() {
           table: "dm_messages",
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
-        }
+          queryClient.invalidateQueries({
+            queryKey: dmKeys.conversations(user.id),
+          });
+        },
       )
       .on(
         "postgres_changes",
@@ -153,8 +179,10 @@ export function useConversations() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
-        }
+          queryClient.invalidateQueries({
+            queryKey: dmKeys.conversations(user.id),
+          });
+        },
       )
       .subscribe();
 
@@ -176,9 +204,9 @@ export function useMarkAsRead() {
 
   const markAsRead = async (conversationId) => {
     if (!user?.id || !conversationId) return;
-    
+
     await dmAPI.markAsRead(conversationId, user.id);
-    
+
     // Invalidate conversations to refresh unread counts
     queryClient.invalidateQueries({ queryKey: dmKeys.conversations(user.id) });
   };
@@ -195,10 +223,10 @@ export function useDeleteDMMessage() {
     onSuccess: (_, { conversationId, messageId }) => {
       queryClient.setQueryData(dmKeys.messages(conversationId), (old) => {
         if (!old) return [];
-        return old.map((msg) => 
-          msg.id === messageId 
-            ? { ...msg, deleted_at: new Date().toISOString() } 
-            : msg
+        return old.map((msg) =>
+          msg.id === messageId
+            ? { ...msg, deleted_at: new Date().toISOString() }
+            : msg,
         );
       });
     },
@@ -212,14 +240,19 @@ export function useUpdateDMMessage() {
   const queryClient = useQueryClient();
 
   const { mutate: updateMessage, isPending: isUpdating } = useMutation({
-    mutationFn: ({ messageId, newBody }) => dmAPI.updateMessage(messageId, newBody),
+    mutationFn: ({ messageId, newBody }) =>
+      dmAPI.updateMessage(messageId, newBody),
     onSuccess: (updatedMessage, { conversationId }) => {
       queryClient.setQueryData(dmKeys.messages(conversationId), (old) => {
         if (!old) return [];
-        return old.map((msg) => 
-          msg.id === updatedMessage.id 
-            ? { ...msg, body: updatedMessage.body, edited_at: updatedMessage.edited_at } 
-            : msg
+        return old.map((msg) =>
+          msg.id === updatedMessage.id
+            ? {
+                ...msg,
+                body: updatedMessage.body,
+                edited_at: updatedMessage.edited_at,
+              }
+            : msg,
         );
       });
     },

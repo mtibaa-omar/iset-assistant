@@ -102,7 +102,7 @@ export default function Profile() {
 
   return (
     <>
-    <div className="max-w-xl px-6 md:max-w-lg lg:max-w-4xl 2xl:max-w-full sm:px-6 2xl:px-24 2xl:py-2 overflow-y-auto">
+    <div className="max-w-xl px-6 overflow-y-auto md:max-w-lg lg:max-w-4xl 2xl:max-w-full sm:px-6 2xl:px-24 2xl:py-2">
       <div className="mb-4 md:mb-5">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl md:text-3xl 2xl:text-5xl">
           Profil

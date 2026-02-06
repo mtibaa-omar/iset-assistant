@@ -92,7 +92,7 @@ export default function Calcul() {
 
   const handleSave = () => {
     if (!user?.id || !academicYear?.id)
-      return toast.error("Missing user or academic year");
+      return toast.error("Utilisateur ou année académique manquant");
     const gradesToSave = filteredSubjects
       .map((subject) => {
         const g = gradesMap[subject.id] || {};
@@ -113,7 +113,7 @@ export default function Calcul() {
           r.note_tp1 != null ||
           r.note_tp2 != null,
       );
-    if (gradesToSave.length === 0) return toast.info("No grades to save");
+    if (gradesToSave.length === 0) return toast.info("Aucune note à enregistrer");
     upsertGrades(gradesToSave, {
       onSuccess: () => {
         setHasChanges(false);
@@ -136,7 +136,7 @@ export default function Calcul() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatCard
-          title="General Average"
+          title="Moyenne Générale"
           value={totals.generalAverage || "-"}
           valueColor={
             totals.generalAverage && parseFloat(totals.generalAverage) >= 10
@@ -145,10 +145,10 @@ export default function Calcul() {
           }
         />
         <StatCard
-          title="Credits Acquired"
+          title="Crédits Acquis"
           value={`${totals.creditAcquis} / ${totals.totalCredit}`}
         />
-        <StatCard title="Subjects" value={filteredSubjects.length} />
+        <StatCard title="Matières" value={filteredSubjects.length} />
       </div>
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export default function Calcul() {
             icon={Save}
             variant="primary"
           >
-            {isUpdating ? "Saving..." : "Save"}
+            {isUpdating ? "Enregistrement..." : "Enregistrer"}
           </Button>
         </div>
       </div>

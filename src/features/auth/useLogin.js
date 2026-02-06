@@ -14,11 +14,11 @@ export function useLogin() {
             queryClient.invalidateQueries({ queryKey: authKeys.user });
             queryClient.invalidateQueries({ queryKey: authKeys.session });
             queryClient.invalidateQueries({ queryKey: authKeys.profile });
-            toast.success("Login successful!");
+            toast.success("Connexion réussie !");
             navigate("/", { replace: true });
         },
         onError: (err) => {
-            const message = err.message || "Email or password incorrect";
+            const message = err.message || "Email ou mot de passe incorrect";
             toast.error(message);
         },
     });
@@ -33,7 +33,7 @@ export function useLoginWithGoogle() {
   } = useMutation({
     mutationFn: authAPI.signInWithGoogle,
     onError: (err) => {
-      const message = err.message || "Google login failed";
+      const message = err.message || "Échec de la connexion Google";
       toast.error(message);
     },
   });

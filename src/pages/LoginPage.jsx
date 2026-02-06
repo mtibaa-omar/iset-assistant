@@ -55,15 +55,15 @@ export default function LoginPage() {
         </button>
       </div>
 
-      <AuthCard title="Login" subtitle="Login to your account">
+      <AuthCard title="Connexion" subtitle="Connectez-vous à votre compte">
       <FormError message={errors.root?.message} />
 
       <GoogleButton mode="login" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input id="email" type="email" label="Email" placeholder="votre.email@example.com" icon={Mail} error={errors.email?.message} {...register("email", { required: "Email is required" })} />
+        <Input id="email" type="email" label="Email" placeholder="votre.email@example.com" icon={Mail} error={errors.email?.message} {...register("email", { required: "L'email est requis" })} />
 
-        <Input id="password" type="password" label="Password" placeholder="••••••••" icon={Lock} error={errors.password?.message} {...register("password", { required: "Password is required" })} />
+        <Input id="password" type="password" label="Mot de passe" placeholder="••••••••" icon={Lock} error={errors.password?.message} {...register("password", { required: "Le mot de passe est requis" })} />
 
         <div className="flex items-center justify-between">
           <label className="flex items-center cursor-pointer">
@@ -72,27 +72,27 @@ export default function LoginPage() {
               className="w-4 h-4 text-purple-600 bg-white rounded border-slate-300 dark:border-white/20 focus:ring-purple-500 dark:bg-white/5"
             />
             <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">
-              Remember me
+              Se souvenir de moi
             </span>
           </label>
           <Link
             to="/forgot-password"
             className="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
           >
-            Forgot Password?
+            Mot de passe oublié ?
           </Link>
         </div>
 
-        <Button type="submit" variant="primary" size="lg" icon={LogIn} fullWidth isLoading={isSubmitting || loginLoading} loadingText="Logging in...">Login</Button>
+        <Button type="submit" variant="primary" size="lg" icon={LogIn} fullWidth isLoading={isSubmitting || loginLoading} loadingText="Connexion...">Connexion</Button>
       </form>
 
       <p className="mt-6 text-sm text-center text-slate-600 dark:text-slate-400">
-        Don't have an account?{" "}
+        Vous n'avez pas de compte ?{" "}
         <Link
           to="/signup"
           className="font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
         >
-          Sign Up
+          S'inscrire
         </Link>
       </p>
     </AuthCard >

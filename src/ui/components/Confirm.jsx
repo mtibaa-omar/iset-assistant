@@ -22,7 +22,7 @@ const VARIANTS = {
     title: "Confirm Deletion",
     message:
       "Are you sure you want to delete this item? This action cannot be undone.",
-    confirmText: "Delete",
+    confirmText: "Supprimer",
     loadingText: "Deleting...",
   },
   warning: {
@@ -48,7 +48,7 @@ export default function Confirm({
   title,
   message,
   confirmText,
-  cancelText = "Cancel",
+  cancelText = "Annuler",
   icon,
   iconColor,
   confirmBgColor,

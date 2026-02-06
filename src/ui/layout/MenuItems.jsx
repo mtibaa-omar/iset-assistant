@@ -81,7 +81,7 @@ export default function MenuItems({ collapsed, onNavigate }) {
           
           <SidebarItem
             icon={<Newspaper className="w-5 h-5" />}
-            label="Admin News"
+            label="Admin Actualités"
             to="/admin/news"
             onNavigate={onNavigate}
             collapsed={collapsed}
@@ -89,7 +89,7 @@ export default function MenuItems({ collapsed, onNavigate }) {
 
           <SidebarItem
             icon={<BookOpen className="w-5 h-5" />}
-            label="Admin Subjects"
+            label="Admin Matières"
             to="/admin/subjects"
             onNavigate={onNavigate}
             collapsed={collapsed}
@@ -105,7 +105,7 @@ export default function MenuItems({ collapsed, onNavigate }) {
 
           <SidebarItem
             icon={<Layers className="w-5 h-5" />}
-            label="Admin Affectations"
+            label="Admin Affect Matieres"
             to="/admin/programs"
             onNavigate={onNavigate}
             collapsed={collapsed}

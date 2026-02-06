@@ -11,10 +11,10 @@ export function useVerifyOtp() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: authKeys.user });
             queryClient.invalidateQueries({ queryKey: authKeys.session });
-            toast.success("Email verified successfully!");
+            toast.success("Email vérifié avec succès !");
         },
         onError: () => {
-            toast.error("Invalid code. Please check and try again.");
+            toast.error("Code invalide. Veuillez vérifier et réessayer.");
         },
     });
 
@@ -25,10 +25,10 @@ export function useResendOtp() {
     const { isPending: isLoading, mutate: resendOtp } = useMutation({
         mutationFn: (email) => authAPI.resendOtp(email),
         onSuccess: () => {
-            toast.success("New code sent to your email!");
+            toast.success("Nouveau code envoyé à votre email !");
         },
         onError: () => {
-            toast.error("Failed to resend code. Please try again.");
+            toast.error("Échec de renvoi du code. Veuillez réessayer.");
         },
     });
 
