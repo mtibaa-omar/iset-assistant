@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "../../services/supabase";
 import { chatAPI } from "../../services/api/apiChat";
 import { chatKeys } from "./chatKeys";
@@ -9,6 +9,7 @@ import { useUser } from "../auth/useUser";
 export function useMessages(programSubjectId) {
   const queryClient = useQueryClient();
   const { user } = useUser();
+  const channelRef = useRef(null);
 
   const {
     data: messages,
@@ -23,24 +24,84 @@ export function useMessages(programSubjectId) {
   useEffect(() => {
     if (!programSubjectId) return;
 
-    const channel = chatAPI.subscribeToMessages(
-      programSubjectId,
-      (newMessage) => {
-        queryClient.setQueryData(chatKeys.messages(programSubjectId), (old) => {
-          if (!old) return [newMessage];
-          if (old.some((msg) => msg.id === newMessage.id)) return old;
+    // Clean up previous channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current).catch(() => {});
+      channelRef.current = null;
+    }
 
-          if (user && newMessage.user_id !== user.id) {
-            playSound(SOUNDS.MESSAGE_GET);
+    const channelName = `subject-chat-${programSubjectId}-${Date.now()}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "subject_messages",
+          filter: `program_subject_id=eq.${programSubjectId}`,
+        },
+        async (payload) => {
+          try {
+            const { data: sender, error: senderError } = await supabase
+              .from("profile_public")
+              .select("id, full_name, avatar_url")
+              .eq("id", payload.new.sender_id)
+              .single();
+
+            if (senderError) {
+              console.error("[Chat] Error fetching sender:", senderError);
+              queryClient.invalidateQueries({
+                queryKey: chatKeys.messages(programSubjectId),
+              });
+              return;
+            }
+
+            const newMessage = {
+              id: payload.new.id,
+              body: payload.new.body,
+              kind: payload.new.kind,
+              created_at: payload.new.created_at,
+              sender_id: payload.new.sender_id,
+              cloudinary_url: payload.new.cloudinary_url,
+              file_name: payload.new.file_name,
+              exam_id: payload.new.exam_id,
+              sender,
+            };
+
+            queryClient.setQueryData(
+              chatKeys.messages(programSubjectId),
+              (old) => {
+                if (!old) return [newMessage];
+                if (old.some((msg) => msg.id === newMessage.id)) return old;
+                return [...old, newMessage];
+              },
+            );
+
+            // Play sound outside of setQueryData updater
+            if (user && payload.new.sender_id !== user.id) {
+              playSound(SOUNDS.MESSAGE_GET);
+            }
+          } catch (err) {
+            console.error("[Chat] Subscription error:", err);
+            queryClient.invalidateQueries({
+              queryKey: chatKeys.messages(programSubjectId),
+            });
           }
+        },
+      )
+      .subscribe((status) => {
+        console.log("[Chat] Subscription status:", status);
+      });
 
-          return [...old, newMessage];
-        });
-      },
-    );
+    channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current).catch(() => {});
+        channelRef.current = null;
+      }
     };
   }, [programSubjectId, queryClient, user]);
 

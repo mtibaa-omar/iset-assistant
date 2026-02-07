@@ -88,8 +88,8 @@ export default function EspaceMatiere() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-700 shadow-sm flex flex-col">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 gap-4 border-b border-slate-100 dark:border-zinc-800">
+      <div className="flex flex-col bg-white border shadow-sm dark:bg-zinc-900 rounded-xl border-slate-200 dark:border-zinc-700">
+        <div className="flex flex-col gap-4 p-4 border-b lg:flex-row lg:items-center lg:justify-between border-slate-100 dark:border-zinc-800">
           <Tabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
           
           <div className="flex gap-2">
@@ -114,7 +114,7 @@ export default function EspaceMatiere() {
         <div className="overflow-x-auto h-[500px]">
           <Table>
             <TableHead>
-              <TableRow className="bg-slate-50 dark:bg-zinc-800/50 border-b border-slate-100 dark:border-zinc-800">
+              <TableRow className="border-b bg-slate-50 dark:bg-zinc-800/50 border-slate-100 dark:border-zinc-800">
                 <TableHeader style={{ width: "400px" }}>Matière</TableHeader>
                 <TableHeader>Type</TableHeader>
                 <TableHeader>Coef / Crédit</TableHeader>
@@ -134,10 +134,10 @@ export default function EspaceMatiere() {
                   <TableRow
                     key={subject.id}
                     onClick={() => navigate(`/chat/${subject.id}`)}
-                    className="border-b border-slate-50 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer"
+                    className="border-b cursor-pointer border-slate-50 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
                   >
                     <TableCell>
-                      <span className="font-medium text-slate-900 dark:text-white block">
+                      <span className="block font-medium text-slate-900 dark:text-white">
                         {subject.subjects?.name || "N/A"}
                       </span>
                     </TableCell>
@@ -163,7 +163,7 @@ export default function EspaceMatiere() {
                     <TableCell className="text-right">
                       <button
                         onClick={(e) => { e.stopPropagation(); navigate(`/chat/${subject.id}`); }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg relative"
+                        className="relative p-2 text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       >
                         <MessageCircle className="w-4 h-4" />
                         {subject.unread_count > 0 && (

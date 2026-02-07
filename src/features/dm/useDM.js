@@ -38,6 +38,7 @@ export function useDMConversation(targetUserId) {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const [conversationId, setConversationId] = useState(null);
+  const channelRef = useRef(null);
 
   // Get or create conversation
   useEffect(() => {
@@ -66,32 +67,93 @@ export function useDMConversation(targetUserId) {
     enabled: !!conversationId,
   });
 
-  // Real-time subscription
+  // Real-time subscription for messages in this conversation
+  // Only updates message cache — sound is handled by the global useDMRealtime hook
   useEffect(() => {
     if (!conversationId) return;
 
-    const channel = dmAPI.subscribeToMessages(conversationId, (newMessage) => {
-      queryClient.setQueryData(dmKeys.messages(conversationId), (old) => {
-        if (!old) return [newMessage];
-        if (old.some((msg) => msg.id === newMessage.id)) return old;
+    // Clean up previous channel if conversationId changed
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current).catch(() => {});
+      channelRef.current = null;
+    }
 
-        // Play sound for incoming messages from other users
-        if (user && newMessage.sender_id !== user.id) {
-          playSound(SOUNDS.MESSAGE_GET);
+    const channelName = `dm-chat-${conversationId}-${Date.now()}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "dm_messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        async (payload) => {
+          try {
+            const { data: sender, error } = await supabase
+              .from("profile_public")
+              .select("id, full_name, avatar_url")
+              .eq("id", payload.new.sender_id)
+              .single();
+
+            if (error) {
+              console.error("[DM] Error fetching sender:", error);
+              queryClient.invalidateQueries({
+                queryKey: dmKeys.messages(conversationId),
+              });
+              return;
+            }
+
+            const newMessage = {
+              id: payload.new.id,
+              body: payload.new.body,
+              kind: payload.new.kind,
+              created_at: payload.new.created_at,
+              sender_id: payload.new.sender_id,
+              cloudinary_url: payload.new.cloudinary_url,
+              file_name: payload.new.file_name,
+              sender,
+            };
+
+            queryClient.setQueryData(
+              dmKeys.messages(conversationId),
+              (old) => {
+                if (!old) return [newMessage];
+                if (old.some((msg) => msg.id === newMessage.id)) return old;
+                return [...old, newMessage];
+              },
+            );
+          } catch (err) {
+            console.error("[DM] Subscription error:", err);
+            queryClient.invalidateQueries({
+              queryKey: dmKeys.messages(conversationId),
+            });
+          }
+        },
+      )
+      .subscribe((status) => {
+        console.log("[DM] Chat subscription status:", status);
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          // Retry: remove and resubscribe after a delay
+          setTimeout(() => {
+            queryClient.invalidateQueries({
+              queryKey: dmKeys.messages(conversationId),
+            });
+          }, 2000);
         }
-
-        return [...old, newMessage];
       });
-    });
+
+    channelRef.current = channel;
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel).catch(() => {
-          // Ignore errors on cleanup
-        });
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current).catch(() => {});
+        channelRef.current = null;
       }
     };
-  }, [conversationId, queryClient, user]);
+  }, [conversationId, queryClient]);
 
   return { conversationId, messages: messages || [], isLoading };
 }
@@ -135,10 +197,9 @@ export function useSendDM() {
 }
 
 // Hook to get all conversations for current user (with unread counts)
+// Pure data hook — no realtime subscription here. Use useDMRealtime() once in AppLayout.
 export function useConversations() {
   const { user } = useUser();
-  const queryClient = useQueryClient();
-  const channelRef = useRef(null);
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: dmKeys.conversations(user?.id),
@@ -146,16 +207,34 @@ export function useConversations() {
     enabled: !!user?.id,
   });
 
+  return { conversations: conversations || [], isLoading };
+}
+
+// Global realtime hook — call ONCE in AppLayout
+// Handles: sidebar invalidation, notification sound, read state updates
+export function useDMRealtime() {
+  const { user } = useUser();
+  const queryClient = useQueryClient();
+  const channelRef = useRef(null);
+  const subIdRef = useRef(0);
+
   useEffect(() => {
     if (!user?.id) return;
 
+    // Increment subscription ID to make channel name unique per mount
+    subIdRef.current += 1;
+    const subId = subIdRef.current;
+
+    // Clean up any previous channel
     if (channelRef.current) {
-      return;
+      supabase.removeChannel(channelRef.current).catch(() => {});
+      channelRef.current = null;
     }
 
-    const channelName = `dm-conversations-${user.id}`;
+    // Use unique channel name per subscription to avoid stale channel reuse
+    const channelName = `dm-global-${user.id}-${subId}`;
 
-    channelRef.current = supabase
+    const channel = supabase
       .channel(channelName)
       .on(
         "postgres_changes",
@@ -164,10 +243,16 @@ export function useConversations() {
           schema: "public",
           table: "dm_messages",
         },
-        () => {
+        (payload) => {
+          // Refresh conversations list (sidebar, unread counts, etc.)
           queryClient.invalidateQueries({
             queryKey: dmKeys.conversations(user.id),
           });
+
+          // Play notification sound for incoming messages from other users
+          if (payload.new && payload.new.sender_id !== user.id) {
+            playSound(SOUNDS.MESSAGE_GET);
+          }
         },
       )
       .on(
@@ -184,7 +269,25 @@ export function useConversations() {
           });
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[DM] Global subscription status:", status);
+        // If subscription fails, retry after a delay
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("[DM] Global subscription failed, retrying...");
+          setTimeout(() => {
+            supabase.removeChannel(channel).catch(() => {});
+            if (channelRef.current === channel) {
+              channelRef.current = null;
+            }
+            // Trigger re-subscription by invalidating queries
+            queryClient.invalidateQueries({
+              queryKey: dmKeys.conversations(user.id),
+            });
+          }, 3000);
+        }
+      });
+
+    channelRef.current = channel;
 
     return () => {
       if (channelRef.current) {
@@ -193,8 +296,6 @@ export function useConversations() {
       }
     };
   }, [user?.id, queryClient]);
-
-  return { conversations: conversations || [], isLoading };
 }
 
 // Hook to mark a conversation as read

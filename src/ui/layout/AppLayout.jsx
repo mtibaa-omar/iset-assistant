@@ -4,9 +4,13 @@ import SidebarMobile from "./SidebarMobile";
 import { Outlet } from "react-router-dom";
 import HeaderMenu from "./HeaderMenu";
 import { Menu } from "lucide-react";
+import { useDMRealtime } from "../../features/dm/useDM";
 
 export default function AppLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+
+  useDMRealtime();
 
   return (
     <div className="relative h-screen overflow-hidden bg-gradient-to-br from-violet-100 via-purple-50 to-pink-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
