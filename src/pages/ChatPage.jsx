@@ -130,7 +130,7 @@ export default function ChatPage() {
         )}
       </div>
 
-      <div className="shrink-0 pb-4 md:pb-6 px-4 md:px-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-slate-200 dark:border-white/10">
+      <div className="px-4 border-t shrink-0 md:px-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-slate-200 dark:border-white/10">
         <MessageInput
           onSend={handleSendMessage}
           onSendFile={handleSendFile}

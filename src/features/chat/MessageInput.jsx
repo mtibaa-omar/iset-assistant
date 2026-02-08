@@ -94,7 +94,7 @@ export default function MessageInput({ onSend, onSendFile, isSending, disabled, 
     <form onSubmit={handleSubmit} className="bg-white border-t dark:bg-zinc-900 border-slate-200 dark:border-zinc-700">
       {editingMessage && (
         <div className="flex items-center justify-between px-3 md:px-4 py-1.5 md:py-2 border-b border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
-          <span className="text-xs md:text-sm text-blue-700 dark:text-blue-300">
+          <span className="text-xs text-blue-700 md:text-sm dark:text-blue-300">
             Modification du message...
           </span>
           <button

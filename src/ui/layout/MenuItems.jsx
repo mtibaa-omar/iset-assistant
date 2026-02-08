@@ -14,6 +14,7 @@ import { SidebarItem } from "./SidebarItem";
 import { useUser } from "../../features/auth/useUser";
 import MessagesSection from "./MessagesSection";
 import SubjectsSection from "./SubjectsSection";
+import { FaChalkboardTeacher } from "react-icons/fa";
 
 export default function MenuItems({ collapsed, onNavigate }) {
   const { isAdmin } = useUser();
@@ -69,7 +70,13 @@ export default function MenuItems({ collapsed, onNavigate }) {
         onNavigate={onNavigate}
         collapsed={collapsed}
       />
-
+      <SidebarItem
+        icon={<FaChalkboardTeacher size="24px" />}
+        label="Tableaux"
+        to="/tableaux"
+        onNavigate={onNavigate}
+        collapsed={collapsed}
+      />
       <MessagesSection collapsed={collapsed} onNavigate={onNavigate} />
       <SubjectsSection collapsed={collapsed} onNavigate={onNavigate} />
       {isAdmin && (

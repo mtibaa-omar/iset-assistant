@@ -33,6 +33,8 @@ import Inbox from "./pages/Inbox";
 import ForgotPassword from "./pages/ForgotPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import PageNotFound from "./pages/PageNotFound";
+import WhiteboardsPage from "./pages/WhiteboardsPage";
+import WhiteboardEditorPage from "./pages/WhiteboardEditorPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +71,8 @@ export default function App() {
               <Route path="moyenne" element={<Calcul />} />
               <Route path="outils" element={<Outils />} />
               <Route path="tutoriels" element={<Tutorials />} />
+              <Route path="tableaux" element={<WhiteboardsPage />} />
+              <Route path="tableaux/:id" element={<WhiteboardEditorPage />} />
               <Route path="messages" element={<Inbox />} />
               <Route path="messages/:username" element={<Inbox />} />
               <Route path="admin/news" element={<AdminRoute><Admin /></AdminRoute>} />

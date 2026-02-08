@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, FileText, Image } from "lucide-react";
+import { Paperclip, FileText, Image } from "lucide-react";
 
 export default function FileUploadButton({ onFileSelect, disabled }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -61,10 +61,10 @@ export default function FileUploadButton({ onFileSelect, disabled }) {
         type="button"
         onClick={() => setShowMenu(!showMenu)}
         disabled={disabled}
-        className="flex items-center justify-center flex-shrink-0 w-10 h-10 text-purple-600 transition-colors rounded-full dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center justify-center flex-shrink-0 w-10 h-10 transition-colors rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
         title="Joindre un fichier"
       >
-        <Plus className="w-6 h-6" />
+        <Paperclip className="w-5 h-5" />
       </button>
 
       {showMenu && (
