@@ -78,7 +78,11 @@ export default function Profile() {
     updateUser({
       fullName,
       avatar: avatarFile
-    });
+    },{
+      onSuccess: () => {
+        toast.success("Profil mis à jour avec succès !");
+      }
+    } );
   };
 
   const handlePasswordChange = (data) => {

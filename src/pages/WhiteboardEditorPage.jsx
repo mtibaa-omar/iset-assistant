@@ -325,6 +325,7 @@ export default function WhiteboardEditorPage() {
         <div className="flex-1">
           <Tldraw
             autoFocus
+            licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
             onMount={(editorInstance) => setEditor(editorInstance)}
             options={canEdit ? undefined : { readonly: true }}
           />
