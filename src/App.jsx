@@ -35,6 +35,8 @@ import UpdatePassword from "./pages/UpdatePassword";
 import PageNotFound from "./pages/PageNotFound";
 import WhiteboardsPage from "./pages/WhiteboardsPage";
 import WhiteboardEditorPage from "./pages/WhiteboardEditorPage";
+import PomodoroPage from "./pages/PomodoroPage";
+import PomodoroSessionPage from "./pages/PomodoroSessionPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +75,8 @@ export default function App() {
               <Route path="tutoriels" element={<Tutorials />} />
               <Route path="tableaux" element={<WhiteboardsPage />} />
               <Route path="tableaux/:id" element={<WhiteboardEditorPage />} />
+              <Route path="pomodoro" element={<PomodoroPage />} />
+              <Route path="pomodoro/:id" element={<PomodoroSessionPage />} />
               <Route path="messages" element={<Inbox />} />
               <Route path="messages/:username" element={<Inbox />} />
               <Route path="admin/news" element={<AdminRoute><Admin /></AdminRoute>} />

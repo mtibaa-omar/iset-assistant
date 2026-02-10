@@ -172,11 +172,10 @@ export const authAPI = {
   },
 
   resetPassword: async (email) => {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/update-password`,
     });
     if (error) throw new Error(error.message);
-    return data;
   },
   getData: async () => {
     const [depts, specs, lvls, specLvls] = await Promise.all([

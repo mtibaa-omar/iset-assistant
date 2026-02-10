@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { supabase } from "../../services/supabase";
 import { chatAPI } from "../../services/api/apiChat";
 import { chatKeys } from "./chatKeys";
@@ -9,7 +9,6 @@ import { useUser } from "../auth/useUser";
 export function useMessages(programSubjectId) {
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const channelRef = useRef(null);
 
   const {
     data: messages,
@@ -23,12 +22,6 @@ export function useMessages(programSubjectId) {
 
   useEffect(() => {
     if (!programSubjectId) return;
-
-    // Clean up previous channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current).catch(() => {});
-      channelRef.current = null;
-    }
 
     const channelName = `subject-chat-${programSubjectId}-${Date.now()}`;
 
@@ -79,10 +72,14 @@ export function useMessages(programSubjectId) {
               },
             );
 
-            // Play sound outside of setQueryData updater
             if (user && payload.new.sender_id !== user.id) {
               playSound(SOUNDS.MESSAGE_GET);
             }
+
+            // Invalidate sidebar unread counts
+            queryClient.invalidateQueries({
+              queryKey: chatKeys.accessibleSubjectsWithUnread(),
+            });
           } catch (err) {
             console.error("[Chat] Subscription error:", err);
             queryClient.invalidateQueries({
@@ -95,13 +92,8 @@ export function useMessages(programSubjectId) {
         console.log("[Chat] Subscription status:", status);
       });
 
-    channelRef.current = channel;
-
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current).catch(() => {});
-        channelRef.current = null;
-      }
+      supabase.removeChannel(channel).catch(() => {});
     };
   }, [programSubjectId, queryClient, user]);
 

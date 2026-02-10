@@ -6,7 +6,8 @@ export const chatAPI = {
   getMessages: async (programSubjectId) => {
     const { data, error } = await supabase
       .from("subject_messages")
-      .select(`
+      .select(
+        `
         id,
         body,
         kind,
@@ -22,7 +23,8 @@ export const chatAPI = {
           full_name,
           avatar_url
         )
-      `)
+      `,
+      )
       .eq("program_subject_id", programSubjectId)
       .order("created_at", { ascending: true });
 
@@ -77,7 +79,8 @@ export const chatAPI = {
   getSubjectInfo: async (programSubjectId) => {
     const { data, error } = await supabase
       .from("program_subjects")
-      .select(`
+      .select(
+        `
         id,
         mode,
         semester,
@@ -85,7 +88,8 @@ export const chatAPI = {
           id,
           name
         )
-      `)
+      `,
+      )
       .eq("id", programSubjectId)
       .single();
 
@@ -132,7 +136,7 @@ export const chatAPI = {
           } catch (err) {
             console.error("[Chat] Subscription error:", err);
           }
-        }
+        },
       )
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {
@@ -158,12 +162,14 @@ export const chatAPI = {
   deleteMessage: async (messageId) => {
     const { error } = await supabase
       .from("subject_messages")
-      .update({ 
+      .update({
         deleted_at: new Date().toISOString(),
+        kind: "text",
         body: null,
         cloudinary_url: null,
         cloudinary_public_id: null,
-        file_name: null
+        file_name: null,
+        exam_id: null,
       })
       .eq("id", messageId);
 
@@ -186,7 +192,7 @@ export const chatAPI = {
   // Get accessible subjects with unread counts (for navigation)
   getSubjectsWithUnread: async () => {
     const { data, error } = await supabase.rpc(
-      "get_accessible_subjects_with_unread"
+      "get_accessible_subjects_with_unread",
     );
 
     if (error) throw new Error(error.message);

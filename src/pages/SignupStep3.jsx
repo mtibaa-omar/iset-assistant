@@ -1,13 +1,20 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { UserPlus, Building2, GraduationCap, BookOpen, Award } from "lucide-react";
+import {
+  UserPlus,
+  Building2,
+  GraduationCap,
+  BookOpen,
+  Award,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import Button from "../ui/components/Button";
 import Select from "../ui/components/Select";
 import { useSignupContext } from "../features/auth/signup/SignupContext";
 import { useUpdateUser } from "../features/auth/useUpdateUser";
 import { useGetFormData } from "../features/auth/signup/useGetFormData";
+import { useUser } from "../features/auth/useUser";
 
 const DEGREE_TYPES = [
   { value: "licence", label: "Licence" },
@@ -16,9 +23,16 @@ const DEGREE_TYPES = [
 
 export default function SignupStep3() {
   const navigate = useNavigate();
-  const { canAccessStep, resetSignup } = useSignupContext();
+  const { canAccessStep, resetSignup, markStepCompleted } = useSignupContext();
   const { isUpdating, updateUser } = useUpdateUser();
-  const { departments, specialties, levels, specialtyLevels, isLoading: isLoadingDepartments } = useGetFormData();
+  const {
+    departments,
+    specialties,
+    levels,
+    specialtyLevels,
+    isLoading: isLoadingDepartments,
+  } = useGetFormData();
+  const { user, isAuthenticated } = useUser();
 
   const {
     register,
@@ -52,12 +66,15 @@ export default function SignupStep3() {
 
   const filteredSpecialties = specialties.filter((s) => {
     const matchesDept = s.department_id?.toString() === selectedDepartment;
-    const matchesDegree = !selectedDegreeType || s.degree === selectedDegreeType;
-    const matchesLevel = !selectedLevel || specialtyLevels.some(
-      (sl) =>
-        sl.specialty_id?.toString() === s.id?.toString() &&
-        sl.level_id?.toString() === selectedLevel
-    );
+    const matchesDegree =
+      !selectedDegreeType || s.degree === selectedDegreeType;
+    const matchesLevel =
+      !selectedLevel ||
+      specialtyLevels.some(
+        (sl) =>
+          sl.specialty_id?.toString() === s.id?.toString() &&
+          sl.level_id?.toString() === selectedLevel,
+      );
     return matchesDept && matchesDegree && matchesLevel;
   });
 
@@ -83,24 +100,34 @@ export default function SignupStep3() {
   }, [selectedLevel, setValue]);
 
   useEffect(() => {
+    const hasIncompleteProfile =
+      isAuthenticated && (!user?.level_id || !user?.specialty_id);
+
+    if (hasIncompleteProfile) {
+      markStepCompleted(1);
+      markStepCompleted(2);
+      return;
+    }
+
     if (!canAccessStep(3)) {
       navigate("/signup", { replace: true });
     }
-  }, [canAccessStep, navigate]);
+  }, [canAccessStep, navigate, isAuthenticated, user, markStepCompleted]);
 
   const onSubmit = (data) => {
     updateUser(
-      { 
-        level: data.level, 
-        speciality: data.speciality 
+      {
+        level: data.level,
+        speciality: data.speciality,
       },
       {
         onSuccess: () => {
           toast.success("Configuration du compte terminée !");
-          navigate("/");
-          setTimeout(() => resetSignup(), 100);
+          resetSignup();
+          sessionStorage.removeItem("signup_data");
+          navigate("/", { replace: true });
         },
-      }
+      },
     );
   };
 
@@ -108,7 +135,7 @@ export default function SignupStep3() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 md:space-y-4">
-      <div className="space-y-3 md:space-y-4 duration-300 animate-in fade-in slide-in-from-right">
+      <div className="space-y-3 duration-300 md:space-y-4 animate-in fade-in slide-in-from-right">
         <Select
           label="Département"
           icon={Building2}
@@ -126,13 +153,19 @@ export default function SignupStep3() {
           options={DEGREE_TYPES}
           disabled={isLoading || !selectedDepartment}
           error={errors.degreeType?.message}
-          {...register("degreeType", { required: "Le type de diplôme est requis" })}
+          {...register("degreeType", {
+            required: "Le type de diplôme est requis",
+          })}
         />
 
         <Select
           label="Niveau"
           icon={GraduationCap}
-          placeholder={selectedDegreeType ? "Sélectionnez votre niveau" : "Sélectionnez d'abord le diplôme"}
+          placeholder={
+            selectedDegreeType
+              ? "Sélectionnez votre niveau"
+              : "Sélectionnez d'abord le diplôme"
+          }
           options={filteredLevels.map((l) => ({ value: l.id, label: l.name }))}
           disabled={isLoading || !selectedDegreeType}
           error={errors.level?.message}
@@ -142,8 +175,15 @@ export default function SignupStep3() {
         <Select
           label="Spécialité"
           icon={BookOpen}
-          placeholder={selectedLevel ? "Sélectionnez votre spécialité" : "Sélectionnez d'abord le niveau"}
-          options={filteredSpecialties.map((s) => ({ value: s.id, label: s.name }))}
+          placeholder={
+            selectedLevel
+              ? "Sélectionnez votre spécialité"
+              : "Sélectionnez d'abord le niveau"
+          }
+          options={filteredSpecialties.map((s) => ({
+            value: s.id,
+            label: s.name,
+          }))}
           disabled={isLoading || !selectedLevel}
           error={errors.speciality?.message}
           {...register("speciality", { required: "La spécialité est requise" })}
@@ -161,7 +201,7 @@ export default function SignupStep3() {
         {isUpdating ? "Enregistrement..." : "Terminer l'inscription"}
       </Button>
 
-      <p className="mt-4 md:mt-6 text-xs md:text-sm text-center text-slate-600 dark:text-slate-400">
+      <p className="mt-4 text-xs text-center md:mt-6 md:text-sm text-slate-600 dark:text-slate-400">
         Vous avez déjà un compte ?{" "}
         <Link
           to="/login"

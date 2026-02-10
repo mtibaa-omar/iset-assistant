@@ -9,6 +9,7 @@ import {
   BookOpen,
   Video,
   Mail,
+  Timer,
 } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
 import { useUser } from "../../features/auth/useUser";
@@ -74,6 +75,13 @@ export default function MenuItems({ collapsed, onNavigate }) {
         icon={<FaChalkboardTeacher size="24px" />}
         label="Tableaux"
         to="/tableaux"
+        onNavigate={onNavigate}
+        collapsed={collapsed}
+      />
+      <SidebarItem
+        icon={<Timer/>}
+        label="pomodoro"
+        to="/pomodoro"
         onNavigate={onNavigate}
         collapsed={collapsed}
       />
