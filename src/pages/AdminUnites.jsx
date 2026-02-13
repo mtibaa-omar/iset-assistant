@@ -1,11 +1,17 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useMemo, useRef, useCallback } from "react";
 
 import { Plus, Save, Loader2, Trash2, FilterX } from "lucide-react";
 import { useUnites } from "../features/admin/useUnites";
-import { useCreateUnite, useUpdateUnite, useDeleteUnite } from "../features/admin/useUnitesMutations";
+import {
+  useCreateUnite,
+  useUpdateUnite,
+  useDeleteUnite,
+} from "../features/admin/useUnitesMutations";
 import { useLevels } from "../features/admin/useLevels";
 import { useSpecialties } from "../features/admin/useSpecialties";
 import { useAdminFilters } from "../features/admin/hooks/useAdminFilters";
+import { useDeleteConfirm } from "../features/admin/hooks/useDeleteConfirm";
+import { useAdminModal } from "../features/admin/hooks/useAdminModal";
 import AdminTable from "../features/admin/components/AdminTable";
 import ActionsCellRenderer from "../features/admin/components/ActionsCellRenderer";
 import Button from "../ui/components/Button";
@@ -28,14 +34,28 @@ export default function AdminUnites() {
   const { createUnite, isCreating } = useCreateUnite();
   const { updateUnite, isUpdating } = useUpdateUnite();
   const { deleteUnite, isDeleting } = useDeleteUnite();
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUnite, setEditingUnite] = useState(null);
-  const [formData, setFormData] = useState(emptyUnite);
-  
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const {
+    isModalOpen,
+    editingItem: editingUnite,
+    formData,
+    setFormData,
+    openCreateModal,
+    openEditModal: openEditModalBase,
+    closeModal,
+  } = useAdminModal({ defaultValues: emptyUnite });
+
+  const {
+    selectedRows,
+    setSelectedRows,
+    isConfirmOpen,
+    deleteTargetId,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleBulkDelete,
+    handleConfirmBulkDelete,
+    closeConfirm,
+  } = useDeleteConfirm({ deleteFn: deleteUnite });
   const {
     filterDegree,
     filterLevel,
@@ -52,99 +72,93 @@ export default function AdminUnites() {
     isExternalFilterPresent,
   } = useAdminFilters({ levels, specialties, data: unites });
 
+  const unitesWithComputedFields = useMemo(() => {
+    return unites.map((u) => {
+      const uniqueSpecialties = new Map();
+      u.program_subjects?.forEach(ps => {
+        if (ps.specialties) {
+          uniqueSpecialties.set(ps.specialties.id, ps.specialties);
+        }
+      });
+      
+      const specialtiesList = Array.from(uniqueSpecialties.values())
+        .map(spec => `${spec.name} (${spec.degree === 'licence' ? 'L' : 'M'})`)
+        .join(', ');
+      
+      return {
+        ...u,
+        specialties_list: specialtiesList || "-",
+      };
+    });
+  }, [unites]);
 
-  const columnDefs = useMemo(() => [
-    { 
-      field: "name", 
-      headerName: "Nom", 
-      flex: 2,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "code", 
-      headerName: "Code", 
-      width: 120,
-      filter: true,
-      sortable: true,
-      valueFormatter: (params) => params.value || "-",
-    },
-    { 
-      headerName: "Actions", 
-      width: 100,
-      cellRenderer: ActionsCellRenderer,
-      sortable: false,
-      filter: false,
-      pinned: "right",
-    },
-  ], []);
+  const columnDefs = useMemo(
+    () => [
+      {
+        field: "name",
+        headerName: "Nom",
+        flex: 2,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "code",
+        headerName: "Code",
+        width: 100,
+        filter: true,
+        sortable: true,
+        valueFormatter: (params) => params.value || "-",
+      },
+      {
+        field: "specialties_list",
+        headerName: "Spécialités",
+        flex: 1,
+        filter: true,
+        sortable: true,
+      },
+      {
+        headerName: "Actions",
+        width: 100,
+        cellRenderer: ActionsCellRenderer,
+        sortable: false,
+        filter: false,
+        pinned: "right",
+      },
+    ],
+    [],
+  );
 
   const onSelectionChanged = useCallback(() => {
     const selectedNodes = gridRef.current?.api?.getSelectedNodes() || [];
-    setSelectedRows(selectedNodes.map(node => node.data));
-  }, []);
-  const context = useMemo(() => ({
-    onEdit: openEditModal,
-    onDelete: handleDeleteClick,
-    isDeleting,
-  }), [isDeleting]);
-
-  function openCreateModal() {
-    setEditingUnite(null);
-    setFormData(emptyUnite);
-    setIsModalOpen(true);
-  }
+    setSelectedRows(selectedNodes.map((node) => node.data));
+  }, [setSelectedRows]);
+  const context = useMemo(
+    () => ({
+      onEdit: openEditModal,
+      onDelete: handleDeleteClick,
+      isDeleting,
+    }),
+    [isDeleting, handleDeleteClick],
+  );
 
   function openEditModal(unite) {
-    setEditingUnite(unite);
-    setFormData({
-      name: unite.name || "",
-      code: unite.code || "",
-    });
-    setIsModalOpen(true);
-  }
-
-  function closeModal() {
-    setIsModalOpen(false);
-    setEditingUnite(null);
-    setFormData(emptyUnite);
+    openEditModalBase(unite, (u) => ({
+      name: u.name || "",
+      code: u.code || "",
+    }));
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (editingUnite) {
-      updateUnite({ id: editingUnite.id, data: formData }, { onSuccess: closeModal });
+      updateUnite(
+        { id: editingUnite.id, data: formData },
+        { onSuccess: closeModal },
+      );
     } else {
       createUnite(formData, { onSuccess: closeModal });
     }
-  }
-
-  function handleDeleteClick(id) {
-    setDeleteTargetId(id);
-    setIsConfirmOpen(true);
-  }
-
-  function handleConfirmDelete() {
-    if (deleteTargetId) {
-      deleteUnite(deleteTargetId, {
-        onSuccess: () => {
-          setIsConfirmOpen(false);
-          setDeleteTargetId(null);
-        }
-      });
-    }
-  }
-
-  function handleBulkDelete() {
-    setDeleteTargetId(null);
-    setIsConfirmOpen(true);
-  }
-
-  function handleConfirmBulkDelete() {
-    selectedRows.forEach(row => deleteUnite(row.id));
-    setIsConfirmOpen(false);
-    setSelectedRows([]);
   }
 
   if (isLoading) {
@@ -161,8 +175,8 @@ export default function AdminUnites() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
           Gestion des Unités
         </h1>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="w-40">
               <Select
                 label=""
@@ -214,13 +228,17 @@ export default function AdminUnites() {
 
       <AdminTable
         ref={gridRef}
-        rowData={unites}
+        rowData={unitesWithComputedFields}
         columnDefs={columnDefs}
         onSelectionChanged={onSelectionChanged}
         context={context}
         doesExternalFilterPass={doesExternalFilterPass}
         isExternalFilterPresent={isExternalFilterPresent}
-        noRowsMessage={hasActiveFilters ? "Aucune unité correspondant aux filtres" : "Aucune unité pour le moment"}
+        noRowsMessage={
+          hasActiveFilters
+            ? "Aucune unité correspondant aux filtres"
+            : "Aucune unité pour le moment"
+        }
       />
 
       <Modal
@@ -246,11 +264,20 @@ export default function AdminUnites() {
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="secondary" className="flex-1" onClick={closeModal}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={closeModal}
+            >
               Annuler
             </Button>
-            <Button type="submit" className="flex-1" disabled={isCreating || isUpdating}>
-              {(isCreating || isUpdating) ? (
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={isCreating || isUpdating}
+            >
+              {isCreating || isUpdating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
@@ -263,14 +290,21 @@ export default function AdminUnites() {
 
       <Confirm
         isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete}
+        onClose={closeConfirm}
+        onConfirm={
+          deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete
+        }
         isLoading={isDeleting}
         variant="danger"
-        title={deleteTargetId ? "Supprimer cette unité ?" : `Supprimer ${selectedRows.length} unité(s) ?`}
-        message={deleteTargetId 
-          ? "Cette action est irréversible. L'unité sera définitivement supprimée."
-          : `Vous êtes sur le point de supprimer ${selectedRows.length} unité(s). Cette action est irréversible.`
+        title={
+          deleteTargetId
+            ? "Supprimer cette unité ?"
+            : `Supprimer ${selectedRows.length} unité(s) ?`
+        }
+        message={
+          deleteTargetId
+            ? "Cette action est irréversible. L'unité sera définitivement supprimée."
+            : `Vous êtes sur le point de supprimer ${selectedRows.length} unité(s). Cette action est irréversible.`
         }
         confirmText="Supprimer"
         cancelText="Annuler"

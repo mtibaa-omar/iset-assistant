@@ -2,11 +2,20 @@ import { useState, useMemo, useRef, useCallback } from "react";
 
 import { Plus, Save, Loader2, Trash2, FilterX } from "lucide-react";
 import { useSubjectsAdmin } from "../features/admin/useSubjectsAdmin";
-import { useCreateSubject, useUpdateSubject, useDeleteSubject } from "../features/admin/useSubjectsMutations";
+import {
+  useCreateSubject,
+  useUpdateSubject,
+  useDeleteSubject,
+} from "../features/admin/useSubjectsMutations";
 import { useDepartments } from "../features/admin/useDepartments";
 import { useLevels } from "../features/admin/useLevels";
 import { useSpecialties } from "../features/admin/useSpecialties";
-import { useAdminFilters, formatDateShortFR } from "../features/admin/hooks/useAdminFilters";
+import {
+  useAdminFilters,
+  formatDateShortFR,
+} from "../features/admin/hooks/useAdminFilters";
+import { useDeleteConfirm } from "../features/admin/hooks/useDeleteConfirm";
+import { useAdminModal } from "../features/admin/hooks/useAdminModal";
 import AdminTable from "../features/admin/components/AdminTable";
 import ActionsCellRenderer from "../features/admin/components/ActionsCellRenderer";
 import Button from "../ui/components/Button";
@@ -30,14 +39,28 @@ export default function AdminSubjects() {
   const { createSubject, isCreating } = useCreateSubject();
   const { updateSubject, isUpdating } = useUpdateSubject();
   const { deleteSubject, isDeleting } = useDeleteSubject();
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [formData, setFormData] = useState(emptySubject);
-  
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const {
+    isModalOpen,
+    editingItem: editingSubject,
+    formData,
+    setFormData,
+    openCreateModal,
+    openEditModal: openEditModalBase,
+    closeModal,
+  } = useAdminModal({ defaultValues: emptySubject });
+
+  const {
+    selectedRows,
+    setSelectedRows,
+    isConfirmOpen,
+    deleteTargetId,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleBulkDelete,
+    handleConfirmBulkDelete,
+    closeConfirm,
+  } = useDeleteConfirm({ deleteFn: deleteSubject });
   const {
     filterDegree,
     filterLevel,
@@ -56,120 +79,113 @@ export default function AdminSubjects() {
     isExternalFilterPresent,
   } = useAdminFilters({ levels, specialties, data: subjects });
 
-  const departmentOptions = useMemo(() => [
-    { value: "all", label: "Tous les départements" },
-    ...departments.map(dept => ({ value: dept.id, label: dept.name }))
-  ], [departments]);
+  const departmentOptions = useMemo(
+    () => [
+      { value: "all", label: "Tous les départements" },
+      ...departments.map((dept) => ({ value: dept.id, label: dept.name })),
+    ],
+    [departments],
+  );
 
-  const departmentFormOptions = useMemo(() => 
-    departments.map(dept => ({ value: dept.id, label: dept.name }))
-  , [departments]);
+  const departmentFormOptions = useMemo(
+    () => departments.map((dept) => ({ value: dept.id, label: dept.name })),
+    [departments],
+  );
 
   const subjectsWithComputedFields = useMemo(() => {
-    return subjects.map(s => ({
-      ...s,
-      department_name: s.departments?.name || "-",
-      formatted_date: formatDateShortFR(s.created_at),
-    }));
+    return subjects.map((s) => {
+      const uniqueSpecialties = new Map();
+      s.program_subjects?.forEach(ps => {
+        if (ps.specialties) {
+          uniqueSpecialties.set(ps.specialties.id, ps.specialties);
+        }
+      });
+      
+      const specialtiesList = Array.from(uniqueSpecialties.values())
+        .map(spec => `${spec.name} (${spec.degree === 'licence' ? 'L' : 'M'})`)
+        .join(', ');
+      
+      return {
+        ...s,
+        department_name: s.departments?.name || "-",
+        specialties_list: specialtiesList || "-",
+        formatted_date: formatDateShortFR(s.created_at),
+      };
+    });
   }, [subjects]);
 
-  const columnDefs = useMemo(() => [
-    { 
-      field: "name", 
-      headerName: "Nom", 
-      flex: 2,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "department_name", 
-      headerName: "Département", 
-      flex: 1,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "formatted_date", 
-      headerName: "Date", 
-      width: 100,
-      sortable: true,
-    },
-    { 
-      headerName: "Actions", 
-      width: 100,
-      cellRenderer: ActionsCellRenderer,
-      sortable: false,
-      filter: false,
-      pinned: "right",
-    },
-  ], []);
+  const columnDefs = useMemo(
+    () => [
+      {
+        field: "name",
+        headerName: "Nom",
+        flex: 2,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "department_name",
+        headerName: "Département",
+        width: 140,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "specialties_list",
+        headerName: "Spécialités",
+        flex: 1,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "formatted_date",
+        headerName: "Date",
+        width: 100,
+        sortable: true,
+      },
+      {
+        headerName: "Actions",
+        width: 100,
+        cellRenderer: ActionsCellRenderer,
+        sortable: false,
+        filter: false,
+        pinned: "right",
+      },
+    ],
+    [],
+  );
 
   const onSelectionChanged = useCallback(() => {
     const selectedNodes = gridRef.current?.api?.getSelectedNodes() || [];
-    setSelectedRows(selectedNodes.map(node => node.data));
+    setSelectedRows(selectedNodes.map((node) => node.data));
   }, []);
-  const context = useMemo(() => ({
-    onEdit: openEditModal,
-    onDelete: handleDeleteClick,
-    isDeleting,
-  }), [isDeleting]);
-
-  function openCreateModal() {
-    setEditingSubject(null);
-    setFormData(emptySubject);
-    setIsModalOpen(true);
-  }
+  const context = useMemo(
+    () => ({
+      onEdit: openEditModal,
+      onDelete: handleDeleteClick,
+      isDeleting,
+    }),
+    [isDeleting],
+  );
 
   function openEditModal(subject) {
-    setEditingSubject(subject);
-    setFormData({
-      name: subject.name || "",
-      department_id: subject.departments?.id || "",
-    });
-    setIsModalOpen(true);
-  }
-
-  function closeModal() {
-    setIsModalOpen(false);
-    setEditingSubject(null);
-    setFormData(emptySubject);
+    openEditModalBase(subject, (s) => ({
+      name: s.name || "",
+      department_id: s.departments?.id || "",
+    }));
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (editingSubject) {
-      updateSubject({ id: editingSubject.id, data: formData }, { onSuccess: closeModal });
+      updateSubject(
+        { id: editingSubject.id, data: formData },
+        { onSuccess: closeModal },
+      );
     } else {
       createSubject(formData, { onSuccess: closeModal });
     }
-  }
-
-  function handleDeleteClick(id) {
-    setDeleteTargetId(id);
-    setIsConfirmOpen(true);
-  }
-
-  function handleConfirmDelete() {
-    if (deleteTargetId) {
-      deleteSubject(deleteTargetId, {
-        onSuccess: () => {
-          setIsConfirmOpen(false);
-          setDeleteTargetId(null);
-        }
-      });
-    }
-  }
-
-  function handleBulkDelete() {
-    setDeleteTargetId(null);
-    setIsConfirmOpen(true);
-  }
-
-  function handleConfirmBulkDelete() {
-    selectedRows.forEach(row => deleteSubject(row.id));
-    setIsConfirmOpen(false);
-    setSelectedRows([]);
   }
 
   if (isLoading) {
@@ -254,7 +270,11 @@ export default function AdminSubjects() {
         context={context}
         doesExternalFilterPass={doesExternalFilterPass}
         isExternalFilterPresent={isExternalFilterPresent}
-        noRowsMessage={hasActiveFilters ? "Aucune matière correspondant aux filtres" : "Aucune matière pour le moment"}
+        noRowsMessage={
+          hasActiveFilters
+            ? "Aucune matière correspondant aux filtres"
+            : "Aucune matière pour le moment"
+        }
       />
 
       <Modal
@@ -275,18 +295,29 @@ export default function AdminSubjects() {
           <Select
             label="Département"
             value={formData.department_id}
-            onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, department_id: e.target.value })
+            }
             options={departmentFormOptions}
             required
             disabled={isDepartmentsLoading}
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="secondary" className="flex-1" onClick={closeModal}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={closeModal}
+            >
               Annuler
             </Button>
-            <Button type="submit" className="flex-1" disabled={isCreating || isUpdating}>
-              {(isCreating || isUpdating) ? (
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={isCreating || isUpdating}
+            >
+              {isCreating || isUpdating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
@@ -299,14 +330,21 @@ export default function AdminSubjects() {
 
       <Confirm
         isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete}
+        onClose={closeConfirm}
+        onConfirm={
+          deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete
+        }
         isLoading={isDeleting}
         variant="danger"
-        title={deleteTargetId ? "Supprimer cette matière ?" : `Supprimer ${selectedRows.length} matière(s) ?`}
-        message={deleteTargetId 
-          ? "Cette action est irréversible. La matière sera définitivement supprimée."
-          : `Vous êtes sur le point de supprimer ${selectedRows.length} matière(s). Cette action est irréversible.`
+        title={
+          deleteTargetId
+            ? "Supprimer cette matière ?"
+            : `Supprimer ${selectedRows.length} matière(s) ?`
+        }
+        message={
+          deleteTargetId
+            ? "Cette action est irréversible. La matière sera définitivement supprimée."
+            : `Vous êtes sur le point de supprimer ${selectedRows.length} matière(s). Cette action est irréversible.`
         }
         confirmText="Supprimer"
         cancelText="Annuler"

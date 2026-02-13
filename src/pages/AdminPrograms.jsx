@@ -2,13 +2,18 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Save, Loader2, Trash2, FilterX } from "lucide-react";
 import { useProgramSubjects } from "../features/admin/useProgramSubjects";
-import { useCreateProgramSubject, useUpdateProgramSubject, useDeleteProgramSubject } from "../features/admin/useProgramSubjectsMutations";
+import {
+  useCreateProgramSubject,
+  useUpdateProgramSubject,
+  useDeleteProgramSubject,
+} from "../features/admin/useProgramSubjectsMutations";
 import { useSubjectsAdmin } from "../features/admin/useSubjectsAdmin";
 import { useLevels } from "../features/admin/useLevels";
 import { useSpecialties } from "../features/admin/useSpecialties";
 import { useUnites } from "../features/admin/useUnites";
 import { useDepartments } from "../features/admin/useDepartments";
 import { useAdminFilters } from "../features/admin/hooks/useAdminFilters";
+import { useDeleteConfirm } from "../features/admin/hooks/useDeleteConfirm";
 import AdminTable from "../features/admin/components/AdminTable";
 import ActionsCellRenderer from "../features/admin/components/ActionsCellRenderer";
 import Button from "../ui/components/Button";
@@ -50,22 +55,36 @@ export default function AdminPrograms() {
   const { createProgramSubject, isCreating } = useCreateProgramSubject();
   const { updateProgramSubject, isUpdating } = useUpdateProgramSubject();
   const { deleteProgramSubject, isDeleting } = useDeleteProgramSubject();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  
+
   // Form filters for cascading selections
   const [formDegree, setFormDegree] = useState("");
   const [formDepartment, setFormDepartment] = useState("");
   const [formLevel, setFormLevel] = useState("");
   const [formSpecialty, setFormSpecialty] = useState("");
-  
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
-    defaultValues: emptyProgramSubject
+  const {
+    selectedRows,
+    setSelectedRows,
+    isConfirmOpen,
+    deleteTargetId,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleBulkDelete,
+    handleConfirmBulkDelete,
+    closeConfirm,
+  } = useDeleteConfirm({ deleteFn: deleteProgramSubject });
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: emptyProgramSubject,
   });
 
   const {
@@ -81,8 +100,13 @@ export default function AdminPrograms() {
     levelOptions,
     specialtyOptions,
     doesExternalFilterPass,
-    isExternalFilterPresent,
-  } = useAdminFilters({ levels, specialties, data: programSubjects });
+    deptMap,
+  } = useAdminFilters({
+    levels,
+    specialties,
+    departments,
+    data: programSubjects,
+  });
 
   const [filterSemester, setFilterSemester] = useState("all");
 
@@ -91,179 +115,205 @@ export default function AdminPrograms() {
     ...SEMESTER_OPTIONS,
   ];
 
-  const subjectOptions = useMemo(() => 
-    subjects.map(s => ({ value: s.id, label: s.name }))
-  , [subjects]);
-  
-  const departmentOptions = useMemo(() => 
-    departments.map(d => ({ value: d.id, label: d.name }))
-  , [departments]);
-  
+  const subjectOptions = useMemo(
+    () => subjects.map((s) => ({ value: s.id, label: s.name })),
+    [subjects],
+  );
+
+  const departmentOptions = useMemo(
+    () => departments.map((d) => ({ value: d.id, label: d.name })),
+    [departments],
+  );
+
   // Filtered options for form based on selections
   const formLevelOptions = useMemo(() => {
-    if (!formDegree && !formDepartment) return levels.map(l => ({ value: l.id, label: l.name }));
-    
+    if (!formDegree && !formDepartment)
+      return levels.map((l) => ({ value: l.id, label: l.name }));
+
     let filteredSpecialties = specialties;
     if (formDegree) {
-      filteredSpecialties = filteredSpecialties.filter(s => s.degree === formDegree);
+      filteredSpecialties = filteredSpecialties.filter(
+        (s) => s.degree === formDegree,
+      );
     }
     if (formDepartment) {
-      filteredSpecialties = filteredSpecialties.filter(s => s.department_id === formDepartment);
+      filteredSpecialties = filteredSpecialties.filter(
+        (s) => s.department_id === formDepartment,
+      );
     }
-    
+
     const levelIds = new Set();
-    filteredSpecialties.forEach(spec => {
+    filteredSpecialties.forEach((spec) => {
       programSubjects
-        .filter(ps => ps.specialty_id === spec.id)
-        .forEach(ps => levelIds.add(ps.level_id));
+        .filter((ps) => ps.specialty_id === spec.id)
+        .forEach((ps) => levelIds.add(ps.level_id));
     });
-    
+
     return levels
-      .filter(l => levelIds.has(l.id))
-      .map(l => ({ value: l.id, label: l.name }));
+      .filter((l) => levelIds.has(l.id))
+      .map((l) => ({ value: l.id, label: l.name }));
   }, [formDegree, formDepartment, levels, specialties, programSubjects]);
 
   const formSpecialtyOptions = useMemo(() => {
     let filtered = specialties;
-    
+
     if (formDegree) {
-      filtered = filtered.filter(s => s.degree === formDegree);
+      filtered = filtered.filter((s) => s.degree === formDegree);
     }
-    
+
     if (formDepartment) {
-      filtered = filtered.filter(s => s.department_id === formDepartment);
+      filtered = filtered.filter((s) => s.department_id === formDepartment);
     }
-    
+
     if (formLevel) {
       const specialtyIds = new Set(
         programSubjects
-          .filter(ps => ps.level_id === formLevel)
-          .map(ps => ps.specialty_id)
+          .filter((ps) => ps.level_id === formLevel)
+          .map((ps) => ps.specialty_id),
       );
-      filtered = filtered.filter(s => specialtyIds.has(s.id));
+      filtered = filtered.filter((s) => specialtyIds.has(s.id));
     }
-    
-    return filtered.map(s => ({ 
-      value: s.id, 
-      label: `${s.name}${!formDegree ? ` (${s.degree === 'licence' ? 'L' : 'M'})` : ''}` 
+
+    return filtered.map((s) => ({
+      value: s.id,
+      label: `${s.name}${!formDegree ? ` (${s.degree === "licence" ? "L" : "M"})` : ""}${deptMap[s.department_id] ? ` | ${deptMap[s.department_id]}` : ""}`,
     }));
-  }, [formDegree, formDepartment, formLevel, specialties, programSubjects]);
+  }, [
+    formDegree,
+    formDepartment,
+    formLevel,
+    specialties,
+    programSubjects,
+    deptMap,
+  ]);
 
   const formSubjectOptions = useMemo(() => {
-    if (!formSpecialty) return subjectOptions;
+    const baseOptions = [{ value: "", label: "Sélectionner matière" }];
     
+    if (!formSpecialty) {
+      return [...baseOptions, ...subjectOptions];
+    }
+
     const subjectIds = new Set(
       programSubjects
-        .filter(ps => ps.specialty_id === formSpecialty)
-        .map(ps => ps.subject_id)
+        .filter((ps) => ps.specialty_id === formSpecialty)
+        .map((ps) => ps.subject_id),
     );
-    
-    return subjects
-      .filter(s => subjectIds.has(s.id))
-      .map(s => ({ value: s.id, label: s.name }));
-  }, [formSpecialty, subjects, programSubjects, subjectOptions]);
-  
-  const specialtyFormOptions = useMemo(() => 
-    specialties.map(s => ({ value: s.id, label: `${s.name} (${s.degree === 'licence' ? 'L' : 'M'})` }))
-  , [specialties]);
 
-  const levelFormOptions = useMemo(() => 
-    levels.map(l => ({ value: l.id, label: l.name }))
-  , [levels]);
-  
-  const uniteOptions = useMemo(() => 
-    unites.map(u => ({ value: u.id, label: u.name }))
-  , [unites]);
+    const filtered = subjects
+      .filter((s) => subjectIds.has(s.id))
+      .map((s) => ({ value: s.id, label: s.name }));
+    
+    return [...baseOptions, ...filtered];
+  }, [formSpecialty, subjects, programSubjects, subjectOptions]);
+
+  const uniteOptions = useMemo(
+    () => unites.map((u) => ({ value: u.id, label: u.name })),
+    [unites],
+  );
 
   const programSubjectsWithComputedFields = useMemo(() => {
-    return programSubjects.map(ps => ({
+    return programSubjects.map((ps) => ({
       ...ps,
       subject_name: ps.subjects?.name || "-",
-      specialty_name: ps.specialties?.name || "-",
-      level_name: ps.levels?.name || "-",
+      specialty_name: ps.specialties?.name
+        ? `${ps.specialties.name} (${ps.specialties.degree === 'licence' ? 'L' : 'M'})`
+        : "-",
+      level_name: ps.levels?.name
+        ? `${ps.levels.name} (${ps.levels.code?.toUpperCase().startsWith('L') ? 'L' : 'M'})`
+        : "-",
       unite_name: ps.unites?.name || "-",
       mode_label: ps.mode === "cours" ? "Cours" : "Atelier",
     }));
   }, [programSubjects]);
 
-  const doesExternalFilterPassExtended = useCallback((node) => {
-    if (!doesExternalFilterPass(node)) return false;
-    
-    if (filterSemester !== "all" && node.data.semester !== filterSemester) {
-      return false;
-    }
-    
-    return true;
-  }, [doesExternalFilterPass, filterSemester]);
+  const doesExternalFilterPassExtended = useCallback(
+    (node) => {
+      if (!doesExternalFilterPass(node)) return false;
 
-  const columnDefs = useMemo(() => [
-    { 
-      field: "subject_name", 
-      headerName: "Matière", 
-      flex: 2,
-      filter: true,
-      sortable: true,
+      if (filterSemester !== "all" && node.data.semester !== filterSemester) {
+        return false;
+      }
+
+      return true;
     },
-    { 
-      field: "specialty_name", 
-      headerName: "Spécialité", 
-      flex: 1,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "level_name", 
-      headerName: "Niveau", 
-      width: 100,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "semester", 
-      headerName: "Semestre", 
-      width: 100,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "unite_name", 
-      headerName: "Unité", 
-      width: 120,
-      filter: true,
-      sortable: true,
-    },
-    { 
-      field: "coefficient", 
-      headerName: "Coef", 
-      width: 80,
-      sortable: true,
-    },
-    { 
-      field: "credit", 
-      headerName: "Crédit", 
-      width: 80,
-      sortable: true,
-    },
-    { 
-      headerName: "Actions", 
-      width: 100,
-      cellRenderer: ActionsCellRenderer,
-      sortable: false,
-      filter: false,
-      pinned: "right",
-    },
-  ], []);
+    [doesExternalFilterPass, filterSemester],
+  );
+
+  const columnDefs = useMemo(
+    () => [
+      {
+        field: "subject_name",
+        headerName: "Matière",
+        flex: 2,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "specialty_name",
+        headerName: "Spécialité",
+        flex: 1,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "level_name",
+        headerName: "Niveau",
+        width: 100,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "semester",
+        headerName: "Semestre",
+        width: 100,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "unite_name",
+        headerName: "Unité",
+        width: 120,
+        filter: true,
+        sortable: true,
+      },
+      {
+        field: "coefficient",
+        headerName: "Coef",
+        width: 80,
+        sortable: true,
+      },
+      {
+        field: "credit",
+        headerName: "Crédit",
+        width: 80,
+        sortable: true,
+      },
+      {
+        headerName: "Actions",
+        width: 100,
+        cellRenderer: ActionsCellRenderer,
+        sortable: false,
+        filter: false,
+        pinned: "right",
+      },
+    ],
+    [],
+  );
 
   const onSelectionChanged = useCallback(() => {
     const selectedNodes = gridRef.current?.api?.getSelectedNodes() || [];
-    setSelectedRows(selectedNodes.map(node => node.data));
-  }, []);
+    setSelectedRows(selectedNodes.map((node) => node.data));
+  }, [setSelectedRows]);
 
-  const context = useMemo(() => ({
-    onEdit: openEditModal,
-    onDelete: handleDeleteClick,
-    isDeleting,
-  }), [isDeleting]);
+  const context = useMemo(
+    () => ({
+      onEdit: openEditModal,
+      onDelete: handleDeleteClick,
+      isDeleting,
+    }),
+    [isDeleting, handleDeleteClick],
+  );
 
   function openCreateModal() {
     setEditingItem(null);
@@ -277,7 +327,7 @@ export default function AdminPrograms() {
 
   function openEditModal(item) {
     setEditingItem(item);
-    const specialty = specialties.find(s => s.id === item.specialty_id);
+    const specialty = specialties.find((s) => s.id === item.specialty_id);
     setFormDegree(specialty?.degree || "");
     setFormDepartment(specialty?.department_id || "");
     setFormLevel(item.level_id || "");
@@ -311,9 +361,12 @@ export default function AdminPrograms() {
       coefficient: parseFloat(data.coefficient),
       credit: parseFloat(data.credit),
     };
-    
+
     if (editingItem) {
-      updateProgramSubject({ id: editingItem.id, data: submissionData }, { onSuccess: closeModal });
+      updateProgramSubject(
+        { id: editingItem.id, data: submissionData },
+        { onSuccess: closeModal },
+      );
     } else {
       createProgramSubject(submissionData, { onSuccess: closeModal });
     }
@@ -352,33 +405,6 @@ export default function AdminPrograms() {
     setValue("subject_id", "");
   }
 
-  function handleDeleteClick(id) {
-    setDeleteTargetId(id);
-    setIsConfirmOpen(true);
-  }
-
-  function handleConfirmDelete() {
-    if (deleteTargetId) {
-      deleteProgramSubject(deleteTargetId, {
-        onSuccess: () => {
-          setIsConfirmOpen(false);
-          setDeleteTargetId(null);
-        }
-      });
-    }
-  }
-
-  function handleBulkDelete() {
-    setDeleteTargetId(null);
-    setIsConfirmOpen(true);
-  }
-
-  function handleConfirmBulkDelete() {
-    selectedRows.forEach(row => deleteProgramSubject(row.id));
-    setIsConfirmOpen(false);
-    setSelectedRows([]);
-  }
-
   function handleResetFilters() {
     resetFilters();
     setFilterSemester("all");
@@ -395,7 +421,7 @@ export default function AdminPrograms() {
   }
 
   return (
-    <div className="px-6 pt-0 pb-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
           Gestion des Affectations
@@ -466,8 +492,14 @@ export default function AdminPrograms() {
         onSelectionChanged={onSelectionChanged}
         context={context}
         doesExternalFilterPass={doesExternalFilterPassExtended}
-        isExternalFilterPresent={() => hasActiveFilters || filterSemester !== "all"}
-        noRowsMessage={anyActiveFilters ? "Aucune affectation correspondant aux filtres" : "Aucune affectation pour le moment"}
+        isExternalFilterPresent={() =>
+          hasActiveFilters || filterSemester !== "all"
+        }
+        noRowsMessage={
+          anyActiveFilters
+            ? "Aucune affectation correspondant aux filtres"
+            : "Aucune affectation pour le moment"
+        }
       />
 
       <Modal
@@ -492,10 +524,7 @@ export default function AdminPrograms() {
                 label="Département"
                 value={formDepartment}
                 onChange={(e) => handleFormDepartmentChange(e.target.value)}
-                options={[
-                  { value: "", label: "Tous" },
-                  ...departmentOptions,
-                ]}
+                options={[{ value: "", label: "Tous" }, ...departmentOptions]}
                 disabled={isDepartmentsLoading}
               />
               <Select
@@ -503,16 +532,15 @@ export default function AdminPrograms() {
                 {...register("level_id", { required: "Niveau requis" })}
                 value={formLevel}
                 onChange={(e) => handleFormLevelChange(e.target.value)}
-                options={[
-                  { value: "", label: "Tous" },
-                  ...formLevelOptions,
-                ]}
+                options={[{ value: "", label: "Tous" }, ...formLevelOptions]}
                 disabled={isLevelsLoading}
                 error={errors.level_id?.message}
               />
               <Select
                 label="Spécialité"
-                {...register("specialty_id", { required: "Spécialité requise" })}
+                {...register("specialty_id", {
+                  required: "Spécialité requise",
+                })}
                 value={formSpecialty}
                 onChange={(e) => handleFormSpecialtyChange(e.target.value)}
                 options={[
@@ -561,9 +589,9 @@ export default function AdminPrograms() {
               type="number"
               step="0.5"
               min="0.5"
-              {...register("coefficient", { 
+              {...register("coefficient", {
                 required: "Coefficient requis",
-                min: { value: 0.5, message: "Minimum 0.5" }
+                min: { value: 0.5, message: "Minimum 0.5" },
               })}
               placeholder="Ex: 2"
               error={errors.coefficient?.message}
@@ -574,9 +602,9 @@ export default function AdminPrograms() {
               type="number"
               step="0.5"
               min="0"
-              {...register("credit", { 
+              {...register("credit", {
                 required: "Crédit requis",
-                min: { value: 0, message: "Minimum 0" }
+                min: { value: 0, message: "Minimum 0" },
               })}
               placeholder="Ex: 3"
               error={errors.credit?.message}
@@ -585,11 +613,20 @@ export default function AdminPrograms() {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="secondary" className="flex-1" onClick={closeModal}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={closeModal}
+            >
               Annuler
             </Button>
-            <Button type="submit" className="flex-1" disabled={isCreating || isUpdating}>
-              {(isCreating || isUpdating) ? (
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={isCreating || isUpdating}
+            >
+              {isCreating || isUpdating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
@@ -602,14 +639,21 @@ export default function AdminPrograms() {
 
       <Confirm
         isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete}
+        onClose={closeConfirm}
+        onConfirm={
+          deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete
+        }
         isLoading={isDeleting}
         variant="danger"
-        title={deleteTargetId ? "Supprimer cette affectation ?" : `Supprimer ${selectedRows.length} affectation(s) ?`}
-        message={deleteTargetId 
-          ? "Cette action est irréversible. L'affectation sera définitivement supprimée."
-          : `Vous êtes sur le point de supprimer ${selectedRows.length} affectation(s). Cette action est irréversible.`
+        title={
+          deleteTargetId
+            ? "Supprimer cette affectation ?"
+            : `Supprimer ${selectedRows.length} affectation(s) ?`
+        }
+        message={
+          deleteTargetId
+            ? "Cette action est irréversible. L'affectation sera définitivement supprimée."
+            : `Vous êtes sur le point de supprimer ${selectedRows.length} affectation(s). Cette action est irréversible.`
         }
         confirmText="Supprimer"
         cancelText="Annuler"

@@ -1,10 +1,12 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useMemo, useRef, useCallback } from "react";
 import { Plus, Save, Loader2, Trash2, FilterX, Video as VideoIcon } from "lucide-react";
 import { useVideos } from "../features/admin/useVideos";
 import { useCreateVideo, useUpdateVideo, useDeleteVideo } from "../features/admin/useVideosMutations";
 import { useLevels } from "../features/admin/useLevels";
 import { useSpecialties } from "../features/admin/useSpecialties";
 import { useAdminFilters, formatDateShortFR } from "../features/admin/hooks/useAdminFilters";
+import { useDeleteConfirm } from "../features/admin/hooks/useDeleteConfirm";
+import { useAdminModal } from "../features/admin/hooks/useAdminModal";
 import AdminTable from "../features/admin/components/AdminTable";
 import ActionsCellRenderer from "../features/admin/components/ActionsCellRenderer";
 import Button from "../ui/components/Button";
@@ -52,7 +54,7 @@ const VideoThumbnailCellRenderer = (params) => {
         <img
           src={thumbnail}
           alt="Video thumbnail"
-          className="w-16 h-12 object-cover rounded-lg border border-slate-200 dark:border-zinc-700"
+          className="object-cover w-16 h-12 border rounded-lg border-slate-200 dark:border-zinc-700"
         />
       </div>
     );
@@ -60,7 +62,7 @@ const VideoThumbnailCellRenderer = (params) => {
   
   return (
     <div className="flex items-center h-full">
-      <div className="w-16 h-12 flex items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+      <div className="flex items-center justify-center w-16 h-12 border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-900/20 dark:border-purple-800">
         <VideoIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
       </div>
     </div>
@@ -93,13 +95,27 @@ export default function AdminVideos() {
   const { updateVideo, isUpdating } = useUpdateVideo();
   const { deleteVideo, isDeleting } = useDeleteVideo();
   
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingVideo, setEditingVideo] = useState(null);
-  const [formData, setFormData] = useState(emptyVideo);
-  
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const {
+    isModalOpen,
+    editingItem: editingVideo,
+    formData,
+    setFormData,
+    openCreateModal,
+    openEditModal: openEditModalBase,
+    closeModal,
+  } = useAdminModal({ defaultValues: emptyVideo });
+
+  const {
+    selectedRows,
+    setSelectedRows,
+    isConfirmOpen,
+    deleteTargetId,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleBulkDelete,
+    handleConfirmBulkDelete,
+    closeConfirm,
+  } = useDeleteConfirm({ deleteFn: deleteVideo });
 
   const {
     filterDegree,
@@ -124,14 +140,20 @@ export default function AdminVideos() {
 
   const levelFormOptions = useMemo(() => [
     { value: "", label: "Aucun niveau" },
-    ...levels.map(l => ({ value: l.id, label: l.name }))
+    ...levels.map(l => {
+      const degree = l.code?.toUpperCase().startsWith('L') ? ' (L)' : 
+                     l.code?.toUpperCase().startsWith('M') ? ' (M)' : '';
+      return { value: l.id, label: l.name + degree };
+    })
   ], [levels]);
 
   const videosWithComputedFields = useMemo(() => {
     return videos.map(v => ({
       ...v,
-      specialty_name: v.specialties?.name || "-",
-      level_name: v.levels?.name || "-",
+      specialty_name: v.specialties?.name ? 
+        `${v.specialties.name} (${v.specialties.degree === 'licence' ? 'L' : 'M'})` : "-",
+      level_name: v.levels?.name ?
+        `${v.levels.name} (${v.levels.code?.toUpperCase().startsWith('L') ? 'L' : 'M'})` : "-",
       formatted_date: formatDateShortFR(v.created_at),
     }));
   }, [videos]);
@@ -190,40 +212,25 @@ export default function AdminVideos() {
   ], []);
 
   const context = useMemo(() => ({
-    onEdit: (video) => {
-      setEditingVideo(video);
-      setFormData({
-        title: video.title,
-        video_url: video.video_url,
-        description: video.description || "",
-        specialty_id: video.specialty_id || "",
-        level_id: video.level_id || "",
-      });
-      setIsModalOpen(true);
-    },
-    onDelete: (video) => {
-      setDeleteTargetId(video.id);
-      setIsConfirmOpen(true);
-    },
+    onEdit: openEditModal,
+    onDelete: handleDeleteClick,
     isDeleting,
-  }), [isDeleting]);
+  }), [isDeleting, handleDeleteClick]);
+
+  function openEditModal(video) {
+    openEditModalBase(video, (v) => ({
+      title: v.title,
+      video_url: v.video_url,
+      description: v.description || "",
+      specialty_id: v.specialty_id || "",
+      level_id: v.level_id || "",
+    }));
+  }
 
   const onSelectionChanged = useCallback(() => {
     const selectedNodes = gridRef.current?.api?.getSelectedRows() || [];
     setSelectedRows(selectedNodes);
-  }, []);
-
-  const handleOpenModal = () => {
-    setEditingVideo(null);
-    setFormData(emptyVideo);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingVideo(null);
-    setFormData(emptyVideo);
-  };
+  }, [setSelectedRows]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -239,30 +246,11 @@ export default function AdminVideos() {
     if (editingVideo) {
       updateVideo(
         { id: editingVideo.id, data: videoData },
-        { onSuccess: handleCloseModal }
+        { onSuccess: closeModal }
       );
     } else {
-      createVideo(videoData, { onSuccess: handleCloseModal });
+      createVideo(videoData, { onSuccess: closeModal });
     }
-  };
-
-  const handleDelete = () => {
-    if (deleteTargetId) {
-      deleteVideo(deleteTargetId);
-    }
-    setIsConfirmOpen(false);
-    setDeleteTargetId(null);
-  };
-
-  const handleBulkDelete = () => {
-    if (selectedRows.length === 0) return;
-    
-    selectedRows.forEach((video) => {
-      deleteVideo(video.id);
-    });
-    
-    setSelectedRows([]);
-    gridRef.current?.api?.deselectAll();
   };
 
   if (isLoading || isLevelsLoading || isSpecialtiesLoading) {
@@ -284,10 +272,6 @@ export default function AdminVideos() {
             Gérer les vidéos éducatives
           </p>
         </div>
-        <Button onClick={handleOpenModal}>
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter une vidéo
-        </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -304,7 +288,7 @@ export default function AdminVideos() {
         <Select
           value={filterSpecialty}
           onChange={(e) => setFilterSpecialty(e.target.value)}
-          options={specialtyOptions}
+          options={specialtyOptions} className="max-w-50"
         />
         {hasActiveFilters && (
           <Button variant="secondary" onClick={resetFilters}>
@@ -312,6 +296,11 @@ export default function AdminVideos() {
             Réinitialiser
           </Button>
         )}
+        <div className="flex-1" />
+        <Button onClick={openCreateModal}>
+          <Plus className="w-4 h-4 mr-2" />
+          Ajouter une vidéo
+        </Button>
       </div>
 
       {selectedRows.length > 0 && (
@@ -353,7 +342,7 @@ export default function AdminVideos() {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        onClose={closeModal}
         title={editingVideo ? "Modifier la vidéo" : "Ajouter une vidéo"}
       >
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -401,7 +390,7 @@ export default function AdminVideos() {
           />
 
           <div className="flex justify-end gap-3 mt-6">
-            <Button type="button" variant="secondary" onClick={handleCloseModal}>
+            <Button type="button" variant="secondary" onClick={closeModal}>
               Annuler
             </Button>
             <Button type="submit" disabled={isCreating || isUpdating}>
@@ -423,8 +412,10 @@ export default function AdminVideos() {
 
       <Confirm
         isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleDelete}
+        onClose={closeConfirm}
+        onConfirm={deleteTargetId ? handleConfirmDelete : handleConfirmBulkDelete}
+        isLoading={isDeleting}
+        variant="danger"
         title="Supprimer la vidéo"
         message="Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible."
         confirmText="Supprimer"
