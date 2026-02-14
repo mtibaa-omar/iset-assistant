@@ -197,7 +197,7 @@ export default function AdminSubjects() {
   }
 
   return (
-    <div className="px-6 pt-0 pb-6 space-y-6 md:py-6">
+    <div className="px-6 pt-0 pb-6 space-y-6 md:py-6 overflow-y-auto">
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
           Gestion des Matières
