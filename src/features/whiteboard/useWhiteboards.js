@@ -46,7 +46,10 @@ export function useUpdateWhiteboard() {
     mutationFn: ({ id, ...updates }) => whiteboardAPI.update(id, updates),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: wbKeys.all() });
-      queryClient.setQueryData(wbKeys.detail(data.id), data);
+      // Merge with existing cached data so relations (collaborators, owner) are preserved
+      queryClient.setQueryData(wbKeys.detail(data.id), (old) =>
+        old ? { ...old, ...data } : data
+      );
     },
     onError: (err) => toast.error(err.message),
   });

@@ -162,7 +162,8 @@ export default function ShareWhiteboardModal({ isOpen, onClose, board }) {
                 filteredResults.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-3 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800"
+                    onClick={() => !addCollab.isPending && handleAdd(user.id)}
+                    className="flex items-center justify-between p-3 transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800"
                   >
                     <div className="flex items-center gap-3">
                       <img
@@ -176,13 +177,7 @@ export default function ShareWhiteboardModal({ isOpen, onClose, board }) {
                         {user.full_name}
                       </span>
                     </div>
-                    <button
-                      onClick={() => handleAdd(user.id)}
-                      disabled={addCollab.isPending}
-                      className="p-1.5 text-purple-600 transition-colors rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                    </button>
+                    <UserPlus className="w-4 h-4 text-purple-600" />
                   </div>
                 ))
               )}

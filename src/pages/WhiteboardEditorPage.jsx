@@ -57,7 +57,6 @@ export default function WhiteboardEditorPage() {
   const isOwner = board?.owner_id === user?.id;
   const canEdit =
     isOwner ||
-    board?.is_public ||
     board?.whiteboard_collaborators?.some(
       (c) => c.user_id === user?.id && c.role === "editor"
     );
@@ -161,10 +160,10 @@ export default function WhiteboardEditorPage() {
   if (error || !board) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] px-4">
-        <div className="relative max-w-md w-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-3xl rounded-full" />
+        <div className="relative w-full max-w-md">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-3xl" />
           
-          <div className="relative p-8 text-center border rounded-2xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-slate-200 dark:border-zinc-700 shadow-2xl">
+          <div className="relative p-8 text-center border shadow-2xl rounded-2xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-slate-200 dark:border-zinc-700">
             <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
               <ShieldX className="w-10 h-10 text-purple-600 dark:text-purple-400" />
             </div>
@@ -173,20 +172,20 @@ export default function WhiteboardEditorPage() {
               Accès non autorisé
             </h2>
             
-            <p className="mb-6 text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <p className="mb-6 leading-relaxed text-slate-500 dark:text-zinc-400">
               Ce tableau n'existe pas ou vous n'avez pas l'autorisation d'y accéder. 
               Demandez au propriétaire de vous ajouter comme collaborateur.
             </p>
             
             <div className="flex items-center gap-3 mb-6">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-zinc-600 to-transparent" />
-              <span className="text-xs text-slate-400 dark:text-zinc-500 uppercase tracking-wide">
+              <span className="text-xs tracking-wide uppercase text-slate-400 dark:text-zinc-500">
                 ou
               </span>
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-zinc-600 to-transparent" />
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <button
                 onClick={() => navigate("/tableaux")}
                 className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white transition-all rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
@@ -210,8 +209,8 @@ export default function WhiteboardEditorPage() {
 
   return (
     <div ref={editorRef} className="flex flex-col h-[calc(100vh-64px)] bg-white dark:bg-zinc-950 z-50">
-      <div className="flex items-center justify-between px-3 py-2 border-b shrink-0 border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center justify-between px-3 py-2 bg-white border-b shrink-0 border-slate-200 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center min-w-0 gap-3">
           <button
             onClick={() => navigate("/tableaux")}
             className="p-2 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
@@ -275,7 +274,7 @@ export default function WhiteboardEditorPage() {
             <Users className="w-4 h-4" />
             <span>{onlineUsers.length + 1}</span>
             {onlineUsers.length > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full" />
+              <span className="absolute w-2 h-2 bg-green-500 rounded-full top-1 right-1" />
             )}
           </button>
 
@@ -333,7 +332,7 @@ export default function WhiteboardEditorPage() {
 
         {/* Presence sidebar */}
         {showPresence && (
-          <div className="absolute right-0 top-0 z-20 w-64 h-full bg-white dark:bg-zinc-900 border-l border-slate-200 dark:border-zinc-800 shadow-xl overflow-y-auto">
+          <div className="absolute right-0 top-0 z-[1000] w-64 h-full bg-white dark:bg-zinc-900 border-l border-slate-200 dark:border-zinc-800 shadow-xl overflow-y-auto">
             <div className="p-4">
               <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-zinc-100">
                 En ligne ({onlineUsers.length + 1})
@@ -388,7 +387,7 @@ export default function WhiteboardEditorPage() {
               ))}
 
               {onlineUsers.length === 0 && (
-                <p className="text-sm text-center text-slate-400 dark:text-zinc-600 py-4">
+                <p className="py-4 text-sm text-center text-slate-400 dark:text-zinc-600">
                   Personne d'autre en ligne
                 </p>
               )}
