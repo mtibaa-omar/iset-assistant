@@ -11,7 +11,7 @@ export default function MobileMenu({
   onClose,
 }) {
   return (
-    <div className="absolute right-0 z-10 w-56 mt-2 overflow-hidden border shadow-xl rounded-xl top-full backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-zinc-700">
+    <div className="absolute right-0 z-[1001] w-56 mt-2 overflow-hidden border shadow-xl rounded-xl top-full backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-zinc-700">
       <div className="p-2 space-y-1">
         <button
           onClick={() => {

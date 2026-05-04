@@ -39,9 +39,9 @@ export default function NotificationPanel({ isOpen, onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="fixed inset-0 z-[1000] md:z-40" onClick={onClose} />
 
-      <div className="absolute right-0 z-50 mt-2 overflow-hidden border shadow-xl top-full w-80 sm:w-96 rounded-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-slate-200/60 dark:border-zinc-700">
+      <div className="fixed left-3 right-3 top-16 z-[1001] max-h-[calc(100vh-5rem)] overflow-hidden border shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:z-50 md:mt-2 md:w-80 lg:w-96 rounded-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-slate-200/60 dark:border-zinc-700">
         <div className="flex items-center justify-between p-4 border-b border-slate-200/60 dark:border-zinc-700">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-slate-700 dark:text-white" />

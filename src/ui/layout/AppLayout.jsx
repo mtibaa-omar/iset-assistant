@@ -31,7 +31,7 @@ export default function AppLayout() {
         </div>
 
         <main className="relative flex flex-col flex-1 overflow-hidden bg-white dark:bg-zinc-900 md:rounded-2xl md:border md:border-slate-200 md:dark:border-slate-700 md:shadow-xl">
-          <div className={`px-4 py-3 shrink-0 flex items-center justify-between relative lg:hidden ${isMobileMenuOpen ? 'z-[25]' : 'z-[40]'}`}>
+          <div className={`px-4 py-3 shrink-0 flex items-center justify-between relative lg:hidden ${isMobileMenuOpen ? 'z-[25]' : 'z-[1100]'}`}>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="p-2 transition-all border shadow-sm rounded-xl bg-slate-50/50 dark:bg-zinc-900/50 border-slate-200/60 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-zinc-800 lg:hidden"

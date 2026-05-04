@@ -208,7 +208,7 @@ export default function WhiteboardEditorPage() {
   }
 
   return (
-    <div ref={editorRef} className="flex flex-col h-[calc(100vh-64px)] bg-white dark:bg-zinc-950 z-50">
+    <div ref={editorRef} className="relative z-0 flex flex-col h-[calc(100vh-64px)] bg-white md:z-50 dark:bg-zinc-950">
       <div className="flex items-center justify-between px-3 py-2 bg-white border-b shrink-0 border-slate-200 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center min-w-0 gap-3">
           <button

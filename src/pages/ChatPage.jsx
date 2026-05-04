@@ -85,7 +85,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-slate-50 to-white dark:from-zinc-900 dark:to-zinc-950">
       <ChatHeader subject={subject} isLoading={isLoadingSubject} />
 
-      <div className="flex-1 min-h-0 py-4 overflow-y-auto">
+      <div className="flex-1 min-h-0 py-4 overflow-y-auto" data-chat-messages>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-4 text-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-purple-100 rounded-full dark:bg-purple-900/30">
